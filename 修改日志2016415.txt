@@ -1,0 +1,25 @@
+2014.9.29
+1、修改基频显示问题 对应1-25 2-12.5 3-6.25 4-3.125
+2、修改因删除每道前两个数据点 导致数据顺序有问题的问题
+2014.12.29 3.0.0.3
+1、圆滑加保存usf
+2015.04.09
+隐藏坐标判断功能
+TEMShowingParaSetDialog.java	
+JOptionPane.showMessageDialog(this, "积分完毕，坐标不予显示，因存在坐标相同点！");      [位置 589:73]	
+JOptionPane.showMessageDialog(this, "存在坐标相同点！");      [位置 717:52]	
+2015.8.7
+屏蔽数据采集模式功能
+GroundOrAirDia.setVisible(false);
+2016.3.9
+1、屏蔽了TEMDogTest
+2、install4j 打包后 会出现 不能再安装目录生成文件夹或者文件的情况 需要写到安装文件夹以外 （暂且写在第一盘符）
+File[] roots = File.listRoots();//获得盘符
+下一步需要研究install4j 解决这个问题 
+2016.3.10
+1、originalScrollPane.getVerticalScrollBar().setUnitIncrement(50);
+2、原始数据显示标点设置小些显示
+2016.9.14
+1、添加新的读取文件read_HighLowFile 
+2017.9.9
+积分视窗根据实际基频，自动对应显示
