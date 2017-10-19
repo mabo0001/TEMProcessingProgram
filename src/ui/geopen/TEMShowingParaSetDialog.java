@@ -964,6 +964,7 @@ public class TEMShowingParaSetDialog extends javax.swing.JDialog implements Prop
         for (int i = 0; i < rows; i++) {
             String fileName = TEMSourceData.filesName[i];
             filesName.add(fileName);
+//            System.out.println(fileName);
             //赋值给文件名_删除点集合 默认集合大小为零
             fileName_DeletedPoints.put(fileName, new ArrayList());
             //赋值给文件名_改变点集合 默认集合大小为零
@@ -1207,6 +1208,7 @@ public class TEMShowingParaSetDialog extends javax.swing.JDialog implements Prop
                     voltValue[j] = (voltValue1[j] + voltValue2[j] + voltValue3[j]) / recChannels;
                 }
                 TEMIntegrationMethod integrationMethod = new TEMIntegrationMethod();
+                System.out.println(pointsParasTable.getValueAt(i, columm1).toString().trim() + "," + startT + "," + endT + "," + voltValue.length);
                 ArrayList integrationList = integrationMethod.AddressDatas(
                         startT, endT,
                         wins, area,
@@ -1217,7 +1219,6 @@ public class TEMShowingParaSetDialog extends javax.swing.JDialog implements Prop
                         voltValue,
                         sampletRate);//积分处理
                 TEMSourceData.integrationValue.put(pointsParasTable.getValueAt(i, columm1).toString().trim(), integrationList);//文件名 积分数据
-//                System.out.println(filesCount);
             }
 //            JOptionPane.showMessageDialog(frame, "积分完毕");
             return null;

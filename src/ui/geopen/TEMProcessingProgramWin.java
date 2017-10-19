@@ -1582,7 +1582,7 @@ public class TEMProcessingProgramWin extends JFrame {
                         }
                     }
                 }
-                if (TEMChartPanle.series3.getItemCount() > 0) {
+               if (TEMChartPanle.series3.getItemCount() > 0) {
                     for (int i = 0; i < TEMChartPanle.series3.getItemCount(); i++) {
                         if (TEMChartPanle.series3.getX(i).doubleValue() == x && TEMChartPanle.series3.getY(i).doubleValue() == y) {
                             TEMChartPanle.series3.remove(i);

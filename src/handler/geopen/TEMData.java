@@ -302,7 +302,7 @@ public class TEMData {
             String gpsInfStr = new String(gpsInf);
             String[] splitStrs = gpsInfStr.split(",");
             //截取纬度
-            String[] latitudeSplit = splitStrs[1].split("[.]");
+//            String[] latitudeSplit = splitStrs[1].split("[.]");
 //            System.out.println(gpsInfStr + "," + latitudeSplit.length);
 //            String pointLat = latitudeSplit[0].substring(latitudeSplit[0].length() - 2, latitudeSplit[0].length());
 //            String degreeLat = latitudeSplit[0].substring(1, latitudeSplit[0].length() - 2);
@@ -336,7 +336,7 @@ public class TEMData {
         byte[] gpsTime = new byte[19];//记录时间
         raf.read(gpsTime);
         String gpsTimeStr = new String(gpsTime);
-        System.out.println(gpsTimeStr);
+//        System.out.println(gpsTimeStr);
         String[] gpsTimeStrs = gpsTimeStr.split(" ");
         String[] gpsTimeDateStrs = gpsTimeStrs[0].split(".");
 //        GPSDialog.dateFormat.setText(gpsTimeDateStrs[0]+"年"+gpsTimeDateStrs[1]+"月"+gpsTimeDateStrs[2]+"日");
@@ -397,20 +397,20 @@ public class TEMData {
             dis.read(buffer);
             dis.close();
             for (int k = 0; k < 1000000; k++) {
-                if (k * 7168 > raf.length()) {
+                if (k * 2048 > raf.length()) {
                     break;
                 }
                 raf.seek(0);
-                raf.seek(k * 7168);
+                raf.seek(k * 2048);
                 String station = files[i].getName().substring(0, 5);
-                String path2 = path + "\\" + station + extractHeadInfor(raf, k * 7168) + ".TM";
+                String path2 = path + "\\" + station + extractHeadInfor(raf, k * 2048) + ".TM";
                 File file1 = new File(path2);
                 FileOutputStream fos = new FileOutputStream(file1);
                 DataOutputStream dos = new DataOutputStream(fos);
                 if (k - 1 < 0) {
-                    dos.write(Arrays.copyOfRange(buffer, 0, 7168));
+                    dos.write(Arrays.copyOfRange(buffer, 0, 2048));
                 } else {
-                    dos.write(Arrays.copyOfRange(buffer, (k - 1) * 7168, k * 7168));
+                    dos.write(Arrays.copyOfRange(buffer, (k - 1) * 2048, k * 2048));
                 }
                 dos.close();
             }
@@ -527,7 +527,7 @@ public class TEMData {
 //                }
                 raf.skipBytes(32);
                 TEMSourceData.fundfrequency[i] = raf.read();//基频号 求采样长度
-                System.out.println(TEMSourceData.fundfrequency[i]);
+//                System.out.println(TEMSourceData.fundfrequency[i]);
                 if (TEMSourceData.fundfrequency[i] >= 5) {
                     return false;
                 }
