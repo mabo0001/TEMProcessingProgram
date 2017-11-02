@@ -113,6 +113,7 @@ public class TEMIntegrationMethod {
                 turns.add(turnsSingle);
             }
         }
+        //有些数据不对需要进行修改，和采集程序的算法一致
         int size = timeList.size();
         for (int i = 0; i < size; i++) {
             if (voltList.get(i) == 0) {

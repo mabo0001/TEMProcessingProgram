@@ -1482,7 +1482,7 @@ public class TEMProcessingProgramWin extends JFrame {
                 fw.write("\r\n");
                 for (int j = 0; j < ((ArrayList) voltage_time.get(0)).size(); j++) {
 //                    System.out.println( ((ArrayList) voltage_time.get(1)).get(j));
-                    if (j == ((ArrayList) voltage_time.get(0)).size()-1) {
+                    if (j == ((ArrayList) voltage_time.get(0)).size() - 1) {
                         fw.write(String.format(format2, (j + 1) + ",")
                                 + String.format(format1, decimalFormat.format((Double) ((ArrayList) voltage_time.get(1)).get(j) / 1000) + ",")
                                 //                            + String.format(format1, decimalFormat.format((Double) ((ArrayList) voltage_time.get(7)).get(j) / 1000) + ",")
@@ -1582,7 +1582,7 @@ public class TEMProcessingProgramWin extends JFrame {
                         }
                     }
                 }
-               if (TEMChartPanle.series3.getItemCount() > 0) {
+                if (TEMChartPanle.series3.getItemCount() > 0) {
                     for (int i = 0; i < TEMChartPanle.series3.getItemCount(); i++) {
                         if (TEMChartPanle.series3.getX(i).doubleValue() == x && TEMChartPanle.series3.getY(i).doubleValue() == y) {
                             TEMChartPanle.series3.remove(i);

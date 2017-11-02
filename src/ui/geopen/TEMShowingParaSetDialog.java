@@ -846,7 +846,9 @@ public class TEMShowingParaSetDialog extends javax.swing.JDialog implements Prop
         try {
             int[] rows = pointsParasTable.getSelectedRows();
             if (rows.length == 0) {
-                Double firstValue = Double.parseDouble(pointsParasTable.getValueAt(0, recColumn).toString());
+                Double firstValue;
+                firstValue = 1.0;
+//                Double firstValue = Double.parseDouble(pointsParasTable.getValueAt(0, recColumn).toString());
                 originalValSpinner.setValue(firstValue);
             } else {
                 Double firstValue = Double.parseDouble(pointsParasTable.getValueAt(rows[0], recColumn).toString());
@@ -1208,7 +1210,7 @@ public class TEMShowingParaSetDialog extends javax.swing.JDialog implements Prop
                     voltValue[j] = (voltValue1[j] + voltValue2[j] + voltValue3[j]) / recChannels;
                 }
                 TEMIntegrationMethod integrationMethod = new TEMIntegrationMethod();
-                System.out.println(pointsParasTable.getValueAt(i, columm1).toString().trim() + "," + startT + "," + endT + "," + voltValue.length);
+//                System.out.println(pointsParasTable.getValueAt(i, columm1).toString().trim() + "," + startT + "," + endT + "," + voltValue.length);
                 ArrayList integrationList = integrationMethod.AddressDatas(
                         startT, endT,
                         wins, area,

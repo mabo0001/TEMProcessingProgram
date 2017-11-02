@@ -199,7 +199,7 @@ public class TEMData {
         //显示坐标
         HashSet<Double> pos = new HashSet<Double>();
         int rowCount = files.length;
-        for (int i = 0; i < files.length; i++) {
+        for (int i = 0; i < rowCount; i++) {
             double x = Double.parseDouble(TEMSourceData.rCenterX[i].toString());
             double y = Double.parseDouble(TEMSourceData.rCenterY[i].toString());
             TEMChartPanle.series1.add(x, y);//series1只负责绘制边框
@@ -258,7 +258,7 @@ public class TEMData {
         Collections.sort(fileList, new IntegerCompartor());
         files = (File[]) fileList.toArray();
         String path = "";
-        if (flagGF == 1) {
+        if (flagGF == 1) {//连续采集数据
             path = splitFiles(files);
             this.files = new File(path).listFiles();
         } else {
@@ -266,6 +266,8 @@ public class TEMData {
         }
         boolean hasGPS = firstJustifiedFileType(this.files);//初始化数组
 
+        System.out.println(hasGPS);
+//        hasGPS=true;
         boolean error;
         if (hasGPS == true) {//老文件
             error = readFiles(this.files, path);//读取文件数据
@@ -294,25 +296,23 @@ public class TEMData {
         for (int i = 0; i <= recPos; i++) {
             posSub[i] = pos[i];
         }
-        String workPos = new String(posSub, "GBK");
+//        String workPos = new String(posSub, "GBK");
 //        TEMAcquisitionProMain.daPosPath.setText(workPos);
         byte[] gpsInf = new byte[32];//经纬度
         raf.read(gpsInf);//读取gps 义
         try {
-            String gpsInfStr = new String(gpsInf);
-            String[] splitStrs = gpsInfStr.split(",");
-            //截取纬度
+//            String gpsInfStr = new String(gpsInf);
+//            String[] splitStrs = gpsInfStr.split("[,]");
+//            //截取纬度
 //            String[] latitudeSplit = splitStrs[1].split("[.]");
-//            System.out.println(gpsInfStr + "," + latitudeSplit.length);
 //            String pointLat = latitudeSplit[0].substring(latitudeSplit[0].length() - 2, latitudeSplit[0].length());
 //            String degreeLat = latitudeSplit[0].substring(1, latitudeSplit[0].length() - 2);
 //            String concat = pointLat + "." + latitudeSplit[1];
 //            double pointLatV = Double.parseDouble(concat);
-
+//
 //            double pointLatVV = Double.parseDouble(concat) / 60.0;
 //            double degreeLatVV = Double.parseDouble(degreeLat) + pointLatVV;
-
-            //经度
+//            //经度
 //            String[] longitudeSplit = splitStrs[0].split("[.]");
 //            String pointLong = longitudeSplit[0].substring(longitudeSplit[0].length() - 2, longitudeSplit[0].length());
 //            String degreeLong = longitudeSplit[0].substring(1, longitudeSplit[0].length() - 2);
@@ -321,28 +321,25 @@ public class TEMData {
 //            double pointLonVV = Double.parseDouble(concatLong) / 60.0;
 //            double degreeLonVV = Double.parseDouble(degreeLong) + pointLonVV;
         } catch (Exception e) {
-            e.printStackTrace();
-//            JOptionPane.showMessageDialog(frame, "GPS信息有误！");
-//            TEMAcquisitionProMain.latitudeFormat.setText("无定位");
-//            TEMAcquisitionProMain.longitudeFormat.setText("无定位");
-//            TEMAcquisitionProMain.locationState.setText("NO");
+//            e.printStackTrace();
+            JOptionPane.showMessageDialog(frame, "GPS信息有误！");
         }
         byte[] gpsState = new byte[2];//定位ok no
         raf.read(gpsState);//定位状态
-        String gpsStateStr = new String(gpsState);
+//        String gpsStateStr = new String(gpsState);
 //        TEMAcquisitionProMain.locationState.setText(gpsStateStr);
         byte[] fileName = new byte[16];//文件名
         raf.read(fileName);
+
         byte[] gpsTime = new byte[19];//记录时间
         raf.read(gpsTime);
         String gpsTimeStr = new String(gpsTime);
-//        System.out.println(gpsTimeStr);
+
         String[] gpsTimeStrs = gpsTimeStr.split(" ");
         String[] gpsTimeDateStrs = gpsTimeStrs[0].split(".");
 //        GPSDialog.dateFormat.setText(gpsTimeDateStrs[0]+"年"+gpsTimeDateStrs[1]+"月"+gpsTimeDateStrs[2]+"日");
 //        TEMAcquisitionProMain.dateFormat.setText(gpsTimeStrs[0]);
 //        TEMAcquisitionProMain.timeFormat.setText(gpsTimeStrs[1]);
-
 //        System.out.println(gpsTimeStrs[0]);
 //        System.out.println(gpsTimeStrs[1]);
 //        System.out.println(gpsTimeStr);
@@ -351,7 +348,7 @@ public class TEMData {
 //        TEMAcquisitionProMain.gSpinner.setValue(Parameters.gain);
         raf.read();//读取道数
 //        TEMAcquisitionProMain.channelSpinner.setValue(Parameters.channels);
-        byte[] channelEH = new byte[32];//通道定义
+        byte[] channelEH = new byte[32];//通道定义 208
         raf.read(channelEH);
         String channelEHStr = new String(channelEH);
         String[] unitChannelEH = channelEHStr.trim().split("[/]");
@@ -362,11 +359,18 @@ public class TEMData {
 //        Parameters.channelsEH[0] = channel1_EH[1].substring(0, 2);
 //        Parameters.channelsEH[1] = channel2_EH[1].substring(0, 2);
 //        Parameters.channelsEH[2] = channel3_EH[1].substring(0, 2);
-        raf.read();//基频号 求采样长度
-        raf.readShort();//获得叠加次数
-        raf.readShort();//获得站点编号
-        raf.skipBytes(7);//按键标示1 电阻6 
-        raf.read();//抑制频率
+        raf.read();//基频号 求采样长度 240
+        raf.readShort();//获得叠加次数 241 
+
+        raf.readShort();//获得站点编号 243
+        raf.skipBytes(7);//按键标示1 电阻6  245
+        raf.read();//抑制频率 252
+        raf.skipBytes(28);//253
+        byte[] mode = new byte[8];
+        raf.read(mode);
+//        String modeStr = new String(mode);
+//        System.out.println(modeStr);
+
         raf.skipBytes(offset + 512 - (int) raf.getFilePointer());//跳出文件头
         return infor;
     }
@@ -387,7 +391,9 @@ public class TEMData {
         RandomAccessFile raf = null;
         String path = "";
         byte[] buffer;
+        int pos = -1;
         for (int i = 0; i < files.length; i++) {
+
             path = makeFileDir(files[i]);//生成文件夹
             raf = new RandomAccessFile(files[i], "rw");
             int fileLength = (int) files[i].length();
@@ -396,21 +402,32 @@ public class TEMData {
             DataInputStream dis = new DataInputStream(fis);
             dis.read(buffer);
             dis.close();
-            for (int k = 0; k < 1000000; k++) {
-                if (k * 2048 > raf.length()) {
+//             System.out.println(files[i].getName());
+            if (pos == -1) {
+                for (int j = 0; j < fileLength; j += 8) {
+                    byte[] b = Arrays.copyOfRange(buffer, j, j + 8);
+                    String str = new String(b, "ASCII");
+                    if (str.trim().equalsIgnoreCase("TEM") && j != 0) {
+                        pos = j;
+                        break;
+                    }
+                }
+            }
+            for (int k = 0; k < 1000; k++) {
+                if (k * pos > raf.length()) {
                     break;
                 }
                 raf.seek(0);
-                raf.seek(k * 2048);
+                raf.seek(k * pos);
                 String station = files[i].getName().substring(0, 5);
-                String path2 = path + "\\" + station + extractHeadInfor(raf, k * 2048) + ".TM";
+                String path2 = path + "\\" + station + extractHeadInfor(raf, k * pos) + ".TM";
                 File file1 = new File(path2);
                 FileOutputStream fos = new FileOutputStream(file1);
                 DataOutputStream dos = new DataOutputStream(fos);
                 if (k - 1 < 0) {
-                    dos.write(Arrays.copyOfRange(buffer, 0, 2048));
+                    dos.write(Arrays.copyOfRange(buffer, 0, pos));
                 } else {
-                    dos.write(Arrays.copyOfRange(buffer, (k - 1) * 2048, k * 2048));
+                    dos.write(Arrays.copyOfRange(buffer, (k - 1) * pos, k * pos));
                 }
                 dos.close();
             }
@@ -424,14 +441,16 @@ public class TEMData {
         //存储所有文件的GPS信息
         TEMSourceData.filesName = new String[length];//文件名
         TEMSourceData.workPlace = new String[length];//工作地点
-        TEMSourceData.latitude = new String[length];;//纬度
-        TEMSourceData.longtitude = new String[length];;//经度
+        TEMSourceData.latitude = new String[length];//纬度
+        TEMSourceData.longtitude = new String[length];//经度
+
         TEMSourceData.status = new String[length];;//定位状态
         TEMSourceData.time = new String[length];;//采样时间
         TEMSourceData.gain = new int[length];;//增益
         TEMSourceData.channels = new int[length];;//道数
         TEMSourceData.fundfrequency = new int[length];//基频
         TEMSourceData.superposition = new int[length];//叠加次数
+        TEMSourceData.mode = new String[length];//采集模式
         //初始化坐标设置参数
         TEMSourceData.trWidth = new Object[length];//Tx边长X(m)
         TEMSourceData.trLength = new Object[length];//Tx边长Y(m)
@@ -472,12 +491,12 @@ public class TEMData {
                 }
                 byte[] gpsInf = new byte[32]; //经纬度
                 raf.read(gpsInf);//读取gps 义
-                String gpsInfStr = new String(gpsInf).trim();
+//                String gpsInfStr = new String(gpsInf).trim();
 //                if (gpsInfStr.equalsIgnoreCase("")) {
 ////                    System.out.println(gpsInfStr.trim().equalsIgnoreCase(""));
 //                    return false;
 //                }
-                String[] splitStrs = gpsInfStr.split(",");
+//                String[] splitStrs = gpsInfStr.split(",");
                 //截取纬度
 //                String[] latitudeSplit = splitStrs[1].split("[.]");
 //                String pointLat = latitudeSplit[0].substring(latitudeSplit[0].length() - 2, latitudeSplit[0].length());
@@ -487,23 +506,23 @@ public class TEMData {
 //                System.out.println(degreeLat + "°" + pointLatV + "' " + splitStrs[1].substring(0, 1) + "*****");
 //                TEMSourceData.latitude[i] = degreeLat + "°" + pointLatV + "' " + splitStrs[1].substring(0, 1);
                 //经度
-                String[] longitudeSplit = splitStrs[0].split("[.]");
-                String pointLong = longitudeSplit[0].substring(longitudeSplit[0].length() - 2, longitudeSplit[0].length());
-                String degreeLong = longitudeSplit[0].substring(1, longitudeSplit[0].length() - 2);
-                String concatLong = pointLong + "." + longitudeSplit[1];
-                double pointLongV = Double.parseDouble(concatLong);
+//                String[] longitudeSplit = splitStrs[0].split("[.]");
+//                String pointLong = longitudeSplit[0].substring(longitudeSplit[0].length() - 2, longitudeSplit[0].length());
+//                String degreeLong = longitudeSplit[0].substring(1, longitudeSplit[0].length() - 2);
+//                String concatLong = pointLong + "." + longitudeSplit[1];
+//                double pointLongV = Double.parseDouble(concatLong);
                 byte[] gpsState = new byte[2];//定位ok no
                 raf.read(gpsState);//定位状态
-                String gpsStateStr = new String(gpsState);
+//                String gpsStateStr = new String(gpsState);
 //                TEMSourceData.status[i] = gpsStateStr;
                 byte[] fileName = new byte[16];//文件名
                 raf.read(fileName);
                 byte[] gpsTime = new byte[19];//记录时间
                 raf.read(gpsTime);
 
-                String gpsTimeStr = new String(gpsTime);
-                String[] gpsTimeStrs = gpsTimeStr.split(" ");
-                String[] gpsTimeDateStrs = gpsTimeStrs[0].split(".");
+//                String gpsTimeStr = new String(gpsTime);
+//                String[] gpsTimeStrs = gpsTimeStr.split(" ");
+//                String[] gpsTimeDateStrs = gpsTimeStrs[0].split(".");
 //                TEMSourceData.time[i] = gpsTimeStrs[0].concat("_").concat(gpsTimeStrs[1]);
 
                 TEMSourceData.gain[i] = raf.readShort();//读取增益
@@ -608,53 +627,17 @@ public class TEMData {
      * @throws IOException
      */
     public boolean read_HighLowFile(File[] files1) throws FileNotFoundException, IOException {
-//        String path = "";
-//        if (flagGF == 1) {
-//            path = splitFiles(files1);
-//            files = new File(path).listFiles();
-//        } else {
-//            files = files1;
-//        }
         RandomAccessFile raf = null;
 //        //存储所有文件的GPS信息
         int length = files1.length;
-//        TEMSourceData.filesName = new String[length];//文件名
-//        TEMSourceData.workPlace = new String[length];//工作地点
-//        TEMSourceData.latitude = new String[length];;//纬度
-//        TEMSourceData.longtitude = new String[length];;//经度
-//        TEMSourceData.status = new String[length];;//定位状态
-//        TEMSourceData.time = new String[length];;//采样时间
-//        TEMSourceData.gain = new int[length];;//增益
-//        TEMSourceData.channels = new int[length];;//道数
-//        TEMSourceData.fundfrequency = new int[length];//基频
-//        TEMSourceData.superposition = new int[length];//叠加次数
         TEMSourceData.division = new double[length];//实际基频值
-//        //初始化坐标设置参数
-//        TEMSourceData.trWidth = new Object[length];//Tx边长X(m)
-//        TEMSourceData.trLength = new Object[length];//Tx边长Y(m)
-//        TEMSourceData.trCenterX = new Object[length];
-//        TEMSourceData.trCenterY = new Object[length];
-//        TEMSourceData.trAngle = new Object[length];
-//        TEMSourceData.trTurns = new Object[length];
-//        TEMSourceData.rCenterX = new Object[length];
-//        TEMSourceData.rCenterY = new Object[length];
-//        TEMSourceData.rCenterZ = new Object[length];
-//        TEMSourceData.rLongtitude = new Object[length];
-//        TEMSourceData.rLatitude = new Object[length];
-//        TEMSourceData.rArea = new Object[length];
-//        TEMSourceData.Array = new Object[length];
-//        TEMSourceData.turnOffTime = new Object[length];
-//        TEMSourceData.current = new Object[length];
-//        TEMSourceData.firstChannel = new Object[length];//第一道
-//        TEMSourceData.secondChannel = new Object[length];//第二道
-//        TEMSourceData.thirdChannel = new Object[length];//第二道
         //源数据
         TEMSourceData.temData = new double[length][][];
         DecimalFormat format = new DecimalFormat("0.0000000");
         int cutCounts = 0;//去掉前几个点
         for (int i = 0; i < files.length; i++) {
 //            System.out.println(files1[i].getName());
-            raf = new RandomAccessFile(files[i], "rw");
+            raf = new RandomAccessFile(files[i], "r");
             raf.skipBytes(8);//跳出装置形式
             TEMSourceData.Array[i] = "中心回线";
             byte[] pos = new byte[128];//工作地点
@@ -674,9 +657,12 @@ public class TEMData {
 
             TEMSourceData.filesName[i] = files[i].getName();//文件名
             TEMSourceData.workPlace[i] = new String(posSub, "GBK");//工作地点
-            raf.skipBytes(32);//跳过没有用的参数 经纬度
-            TEMSourceData.latitude[i] = "null";
-            TEMSourceData.longtitude[i] = "null";
+//            raf.skipBytes(32);//跳过没有用的参数 经纬度
+            byte[] gpsInf = new byte[32]; //经纬度
+            raf.read(gpsInf);//读取gps 义 
+
+
+
             byte[] gpsState = new byte[2];//定位ok no
             raf.read(gpsState);//定位状态
             String gpsStateStr = new String(gpsState);
@@ -715,6 +701,72 @@ public class TEMData {
             raf.readShort();//获得站点编号
             raf.skipBytes(7);//按键标示1 电阻6 
             raf.read();//抑制频率
+            raf.skipBytes(27);//253
+            byte[] mode = new byte[8];
+            raf.read(mode);
+            TEMSourceData.mode[i] = new String(mode, "ASCII");
+            System.out.println(TEMSourceData.mode[i]);
+            //初始化其他的值默认为0D
+            TEMSourceData.trWidth[i] = 1D;//Tx边长X(m)
+            TEMSourceData.trLength[i] = 1D;//Tx边长Y(m)
+            TEMSourceData.trCenterX[i] = 0D;
+            TEMSourceData.trCenterY[i] = 0D;
+            TEMSourceData.trAngle[i] = 0D;
+            TEMSourceData.trTurns[i] = 1D;
+
+            TEMSourceData.rCenterZ[i] = 0D;
+            TEMSourceData.rArea[i] = 1D;
+            TEMSourceData.turnOffTime[i] = 0D;
+            TEMSourceData.current[i] = 1D;
+
+            /*
+             1、	SER     自发射采集模式:按采集键，直接开始按参数进行发射和同步采集，文件名取屏幕RTC的时间；
+             2、	SER+GPS 秒脉冲同步发射采集模式：按采集键，等待一个秒脉冲开始发射和同步采集、文件名取GPS的时间；
+             3、	SR+GPS秒脉冲同步采集模式：按采集键，等待一个秒脉冲开始同步采集，内部PWM不输出、文件名取GPS的时间；
+             5、	CSER+GPS  秒脉冲同步连续采集发射模式：按采集键，等待一个秒脉冲开始发射和同步采集、文件名取GPS的时间，连续采集存盘，每300个文件合并存储在一个文件中；
+             6、	CSR+GPS   秒脉冲同步连续采集模式：按采集键，等待一个秒脉冲开始同步采集、内部PWM不输出，文件名取GPS的时间，连续采集存盘，每300个文件合并存储在一个文件中；
+             7、	OutSYS  外同步模式:按采集键，等待外部触发信号，收到后，开始同步采集，文件名再开始等待触发前取屏幕RTC的时间；
+             */
+            if (TEMSourceData.mode[i].equalsIgnoreCase("CSER_GPS")
+                    || TEMSourceData.mode[i].equalsIgnoreCase("SER")
+                    || TEMSourceData.mode[i].equalsIgnoreCase("CSR_GPS")
+                    || TEMSourceData.mode[i].equalsIgnoreCase("CS_GPS")
+                    || TEMSourceData.mode[i].equalsIgnoreCase("SER_GPS")) {
+                try {
+                    String gpsInfStr = new String(gpsInf);
+                    String[] splitStrs = gpsInfStr.split(",");
+                    //截取纬度
+                    String[] latitudeSplit = splitStrs[1].split("[.]");
+                    String pointLat = latitudeSplit[0].substring(latitudeSplit[0].length() - 2, latitudeSplit[0].length());
+                    String degreeLat = latitudeSplit[0].substring(1, latitudeSplit[0].length() - 2);
+                    String concat = pointLat + "." + latitudeSplit[1];
+                    double pointLatV = Double.parseDouble(concat);
+                    TEMSourceData.latitude[i] = degreeLat + "°" + pointLatV + "' " + splitStrs[1].substring(0, 1);
+                    //经度
+                    String[] longitudeSplit = splitStrs[0].split("[.]");
+                    String pointLong = longitudeSplit[0].substring(longitudeSplit[0].length() - 2, longitudeSplit[0].length());
+                    String degreeLong = longitudeSplit[0].substring(1, longitudeSplit[0].length() - 2);
+                    String concatLong = pointLong + "." + longitudeSplit[1];
+                    double pointLongV = Double.parseDouble(concatLong);
+                    TEMSourceData.longtitude[i] = degreeLong + "°" + pointLongV + "' " + splitStrs[0].substring(0, 1);
+
+                    //经纬度转换
+                    double pointLongVv = Double.parseDouble(concatLong) / 60;
+                    double degreeLongV = Double.parseDouble(degreeLong);
+                    double pointLatVv = Double.parseDouble(concat) / 60;
+                    double degreeLatV = Double.parseDouble(degreeLat);
+                    double log = degreeLongV + pointLongVv;
+                    double lat = degreeLatV + pointLatVv;
+                    double[] xyPos = GaussToBLToGauss.GaussToBLToGauss(log, lat);
+                    TEMSourceData.rCenterX[i] = Double.parseDouble(format.format(xyPos[0]));
+                    TEMSourceData.rCenterY[i] = Double.parseDouble(format.format(xyPos[1]));
+
+                } catch (Exception e) {
+//                    continue;
+                }
+//                System.out.println( TEMSourceData.rCenterX[i]);
+            }
+
             //设置区分参数
             TEMSourceData.division[i] = setDivision(TEMSourceData.fundfrequency[i], 0);
 //            System.out.println(TEMSourceData.fundfrequency[i] + "," + TEMSourceData.division[i] + "+++");
@@ -727,127 +779,99 @@ public class TEMData {
                 }
             }
             raf.skipBytes(512 - (int) raf.getFilePointer());//跳出文件头
+
             if (TEMSourceData.division[i] == -1) {
                 JOptionPane.showMessageDialog(null, files[i].getName() + " 叠加次数不存在,数据头存在错误！");
                 continue;
             }
+            int unitChannelPoints = 0;
             if (TEMSourceData.fundfrequency[i] <= 2) {
                 TEMSourceData.temData[i] = new double[TEMSourceData.channels[i]][TEMSourceData.fundfrequency[i] * 300 - cutCounts];//去掉前两个点 
             } else if (TEMSourceData.fundfrequency[i] <= 4 && TEMSourceData.fundfrequency[i] > 2) {
-                TEMSourceData.temData[i] = new double[TEMSourceData.channels[i]][1200 - cutCounts];
+                unitChannelPoints = 1200;
+                TEMSourceData.temData[i] = new double[TEMSourceData.channels[i]][unitChannelPoints - cutCounts];
             } else if (TEMSourceData.fundfrequency[i] == 5) {//25Hz高
-                TEMSourceData.temData[i] = new double[TEMSourceData.channels[i]][5000 - cutCounts];
+                unitChannelPoints = 5000;
+                TEMSourceData.temData[i] = new double[TEMSourceData.channels[i]][unitChannelPoints - cutCounts];
             } else if (TEMSourceData.fundfrequency[i] == 6) {//50Hz高
-                TEMSourceData.temData[i] = new double[TEMSourceData.channels[i]][2500 - cutCounts];
+                unitChannelPoints = 2500;
+                TEMSourceData.temData[i] = new double[TEMSourceData.channels[i]][unitChannelPoints - cutCounts];
             } else if (TEMSourceData.fundfrequency[i] == 7) {//100Hz高
-                TEMSourceData.temData[i] = new double[TEMSourceData.channels[i]][1250 - cutCounts];
+                unitChannelPoints = 1250;
+                TEMSourceData.temData[i] = new double[TEMSourceData.channels[i]][unitChannelPoints - cutCounts];
             }
-            //初始化其他的值默认为0D
-            TEMSourceData.trWidth[i] = 1D;//Tx边长X(m)
-            TEMSourceData.trLength[i] = 1D;//Tx边长Y(m)
-            TEMSourceData.trCenterX[i] = 0D;
-            TEMSourceData.trCenterY[i] = 0D;
-            TEMSourceData.trAngle[i] = 0D;
-            TEMSourceData.trTurns[i] = 1D;
-            //经纬度转换
-//            double pointLongVv = Double.parseDouble("0") / 60;
-//            double degreeLongV = Double.parseDouble("0");
-//            double pointLatVv = Double.parseDouble("0") / 60;
-//            double degreeLatV = Double.parseDouble("0");
-//            double log = degreeLongV + pointLongVv;
-//            double lat = degreeLatV + pointLatVv;
-//            double[] xyPos = GaussToBLToGauss.GaussToBLToGauss(log, lat);
-
-            double[] xyPos = new double[]{0, 0};
-            TEMSourceData.rCenterX[i] = Double.parseDouble(format.format(xyPos[0]));
-            TEMSourceData.rCenterY[i] = Double.parseDouble(format.format(xyPos[1]));
-            TEMSourceData.rCenterZ[i] = 0D;
-            TEMSourceData.rArea[i] = 1D;
-            TEMSourceData.turnOffTime[i] = 0D;
-            TEMSourceData.current[i] = 1D;
-
-
             //数据提取
             //保存文件
-//            File f = new File(files[i].getName().split("[.]")[0] + ".txt");
-//            FileWriter fw = new FileWriter(f);
-//            if (TEMSourceData.fundfrequency[i] >= 5) {
-//                fw.write(frame.changeFundFre(TEMSourceData.fundfrequency[i]) + "," + 500000 + "\n");//保存数据
-//            } else if (TEMSourceData.fundfrequency[i] == 4) {
-//                fw.write(frame.changeFundFre(TEMSourceData.fundfrequency[i]) + "," + 15000 + "\n");//保存数据
-//            } else {
-//                fw.write(frame.changeFundFre(TEMSourceData.fundfrequency[i]) + "," + 30000 + "\n");//保存数据
-//            }
+            DecimalFormat df = new DecimalFormat("0.0");
             try {
                 XYSeries[] xyseries = new XYSeries[TEMSourceData.channels[i]];
                 for (int j = 0; j < TEMSourceData.channels[i]; j++) {
                     xyseries[j] = new XYSeries("时间/电压", true);
                 }
-                int length1 = TEMSourceData.temData[i][0].length;
+                int length1 = unitChannelPoints;
+                int channels = TEMSourceData.temData[i].length;
                 for (int j = 0; j < length1; j++) {//采样点数
-//                    if (j == 0) {//每道跳出前两个数据 需要乘以通道数
-//                        raf.skipBytes(cutCounts * 4 * TEMSourceData.temData[i].length);
-//                    }
-//                    double values[] = new double[TEMSourceData.channels[i]];
-                    for (int m = 0; m < TEMSourceData.temData[i].length; m++) {//通道数
+                    for (int m = 0; m < channels; m++) {//通道数
                         //读取数据
                         try {
                             if (TEMSourceData.fundfrequency[i] >= 5) {//25Hz 高速采集
-//                                TEMSourceData.temData[i][m][j] = 8192 * (raf.readInt() * 1.0 / TEMSourceData.gain[i] / Math.pow(2, 18));//毫伏
                                 double value = 8192 * (raf.readInt() * 1.0 / TEMSourceData.gain[i] / Math.pow(2, 18));//伏特
-//                                values[m] = value;//保存数值
                                 xyseries[m].add((j + 1) * 1000.0 / 500000 - 0.001, value);
                                 if (j >= 0 && j < length1 - 1) {
                                     interplationXYSeries(xyseries[m], 0);
                                 } else if (j == length1 - 1) {
                                     interplationXYSeries(xyseries[m], 1);
                                 }
-                            } else {
+                            } else {//正常采集
                                 TEMSourceData.temData[i][m][j] = 10000 * (raf.readInt() * 1.0 / TEMSourceData.gain[i] / Math.pow(2, 24));//毫伏
-//                                values[m] = TEMSourceData.temData[i][m][j];//保存数值
-//                                TEMSourceData.temData[i][m][j] = raf.readInt() * 1.0 / TEMSourceData.gain[i];
                             }
                         } catch (Exception e) {
                             TEMSourceData.temData[i][m][j] = 0;//null
-//                            values[m] = 0;
                         }
                     }
-//                    if (j < length1 - 1) {
-//                        FilesToTxt.savePara(fw, values, false);
-//                    } else {
-//                        FilesToTxt.savePara(fw, values, true);
-//                    }
+                }
+                //读取电流数据 0.625微妙一个数据点
+                if (TEMSourceData.mode[i].equalsIgnoreCase("CSER_GPS")
+                        || TEMSourceData.mode[i].equalsIgnoreCase("SER")
+                        || TEMSourceData.mode[i].equalsIgnoreCase("CSR_GPS")
+                        || TEMSourceData.mode[i].equalsIgnoreCase("CS_GPS")
+                        || TEMSourceData.mode[i].equalsIgnoreCase("SER_GPS")) {
+                    int segments = (int) (Math.ceil(unitChannelPoints * channels * 4.0 / 512));
+                    raf.seek(segments * 512 + 512);
+//                raf.skipBytes((int) (segments * 512 + 512-raf.getFilePointer()));
+//                System.out.println(segments * 512 + 512);
+//                System.out.println(segments * 512 + 512-raf.getFilePointer());
+                    XYSeries currentSeries = new XYSeries("时间电流值", false, false);
+                    double currentRate = 1600000;
+                    double sumStart = 0;
+                    double sumEnd = 0;
+                    try {
+                        for (int m = 0; m < 1250; m++) {
+//                        double value = raf.readInt() * 3300.0 * -1 / 4096 / 75;
+                            byte bb[] = new byte[4];
+                            raf.read(bb);
+                            double value = byteArrayToInt(bb) * 3300.0 * -1 / 4096 / 75;
+//                    System.out.println(raf.getFilePointer());
+                            if (m < 50) {//计算前50点的平均值
+                                sumStart += value;
+                            } else if (m > 1200) {//计算后50点的平均值
+                                sumEnd += value;
+                            }
+                            currentSeries.add((m + 1) * 1000.0 * 1000 / currentRate, value);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+
+                    }
+
+                    double avCurrentS = sumStart / 50;
+                    double avCurrentE = sumEnd / 50;
+                    TEMSourceData.current[i] = Double.parseDouble(df.format(Math.abs(avCurrentS - avCurrentE)));
+//                System.out.println(segments + "电压扇区；" + "avCurrentS=" + avCurrentS + " avCurrentE=" + avCurrentE);
                 }
                 //更改积分时窗范围
                 changeIntegerWins(i, xyseries);
-//                if (TEMSourceData.fundfrequency[i] >= 5) {//25Hz 高
-//                    for (int m = 0; m < TEMSourceData.temData[i].length; m++) {//通道
-//                        TEMSourceData.temData[i][m] = xyseries[m].toArray()[1];
-//                    }
-//                    frame.paraDialog.startTSpinner.setValue(0.001);
-//                    if (TEMSourceData.fundfrequency[i] == 5) {
-//                        frame.paraDialog.endTSpinner.setValue(10);
-//                    } else if (TEMSourceData.fundfrequency[i] == 6) {
-//                        frame.paraDialog.endTSpinner.setValue(5);
-//                    } else if (TEMSourceData.fundfrequency[i] == 7) {
-//                        frame.paraDialog.endTSpinner.setValue(2.5);
-//                    }
-//                } else {
-//                    if (TEMSourceData.fundfrequency[i] == 1) {
-//                        frame.paraDialog.startTSpinner.setValue(0.033);
-//                        frame.paraDialog.endTSpinner.setValue(10);
-//                    } else if (TEMSourceData.fundfrequency[i] == 2) {
-//                        frame.paraDialog.startTSpinner.setValue(0.033);
-//                        frame.paraDialog.endTSpinner.setValue(20);
-//                    } else if (TEMSourceData.fundfrequency[i] == 3) {
-//                        frame.paraDialog.startTSpinner.setValue(0.033);
-//                        frame.paraDialog.endTSpinner.setValue(40);
-//                    } else if (TEMSourceData.fundfrequency[i] == 4) {
-//                        frame.paraDialog.startTSpinner.setValue(0.067);
-//                        frame.paraDialog.endTSpinner.setValue(80);
-//                    }
-//                }
-                //清理
+                //清理 
                 for (int j = 0; j < TEMSourceData.channels[i]; j++) {
                     xyseries[j].clear();
                 }
@@ -858,8 +882,21 @@ public class TEMData {
             }
             raf.close();
         }
-
         return true;
+    }
+
+    /**
+     * byte数组转换为int整数
+     *
+     * @param bytes byte数组
+     * @param off 开始位置
+     * @return int整数
+     */
+    public static int byteArrayToInt(byte[] b) {
+        return b[3] & 0xFF
+                | (b[2] & 0xFF) << 8
+                | (b[1] & 0xFF) << 16
+                | (b[0] & 0xFF) << 24;
     }
 
     /**
@@ -1000,6 +1037,7 @@ public class TEMData {
             raf.skipBytes(8);//跳出装置形式
             TEMSourceData.Array[i] = "中心回线";
             //*******检查GPS数据有无问题*********************
+            int unitChannelPoints = 0;
             try {
                 byte[] pos = new byte[128];//工作地点
                 raf.read(pos);
@@ -1067,7 +1105,7 @@ public class TEMData {
                         TEMSourceData.thirdChannel[i] = true;
                         break;
                 }
-                raf.skipBytes(32);
+                raf.skipBytes(32);//跳出通道定义
                 TEMSourceData.fundfrequency[i] = raf.read();//基频号 求采样长度
 //                System.out.println(TEMSourceData.fundfrequency[i]);
 //                SpinnerNumberModel modelendDep = (SpinnerNumberModel) frame.paraDialog.timeWins.getModel();
@@ -1099,14 +1137,25 @@ public class TEMData {
                     }
                 }
                 TEMSourceData.superposition[i] = raf.readShort();//获得叠加次数
+                raf.skipBytes(37);//跳出叠加次数之后的字节直接到 mode位置
+                byte[] mode = new byte[8];//
+                raf.read(mode);
+                TEMSourceData.mode[i] = new String(mode, "ASCII");
+//                System.out.println(TEMSourceData.mode[i]);
                 raf.skipBytes(512 - (int) raf.getFilePointer());//跳出文件头
+
+
                 if (dividend == -1) {
                     JOptionPane.showMessageDialog(null, files[i].getName() + "叠加次数不存在");
                 }
+
 //                TEMSourceData.temData[i] = new double[TEMSourceData.channels[i]][TEMSourceData.fundfrequency[i] * 300];//-2去掉前两个点 
+//                System.out.println(TEMSourceData.fundfrequency[i]);
                 if (TEMSourceData.fundfrequency[i] <= 2) {
-                    TEMSourceData.temData[i] = new double[TEMSourceData.channels[i]][TEMSourceData.fundfrequency[i] * 300 - cutCounts];//去掉前两个点 
+                    unitChannelPoints = TEMSourceData.fundfrequency[i] * 300;
+                    TEMSourceData.temData[i] = new double[TEMSourceData.channels[i]][unitChannelPoints - cutCounts];//去掉前两个点 
                 } else {
+                    unitChannelPoints = 1200;
                     TEMSourceData.temData[i] = new double[TEMSourceData.channels[i]][1200 - cutCounts];//
                 }
                 //初始化其他的值默认为0D
@@ -1151,7 +1200,7 @@ public class TEMData {
                         //读取数据
                         try {
 //                            TEMSourceData.temData[i][m][j] = raf.readInt() * 1.0 / TEMSourceData.gain[i];
-                            TEMSourceData.temData[i][m][j] = 10000 * (raf.readInt() * 1.0 / TEMSourceData.gain[i] / Math.pow(2, 24));//伏特
+                            TEMSourceData.temData[i][m][j] = 10000.0 * (raf.readInt() * 1.0 / TEMSourceData.gain[i] / Math.pow(2, 24));//伏特
 //                            System.out.println(TEMSourceData.temData[i][m][j]);
                         } catch (Exception e) {
                             TEMSourceData.temData[i][m][j] = 0;
@@ -1164,8 +1213,45 @@ public class TEMData {
                 JOptionPane.showMessageDialog(null, "源文件数据量不够！显示存在问题，请检查源数据！");
                 return false;
             }
+            //读取电流数据 0.625微妙一个数据点
+            DecimalFormat df = new DecimalFormat("0.0");
+            if (TEMSourceData.mode[i].equalsIgnoreCase("CSER_GPS")
+                    || TEMSourceData.mode[i].equalsIgnoreCase("SER")
+                    || TEMSourceData.mode[i].equalsIgnoreCase("CSR_GPS")
+                    || TEMSourceData.mode[i].equalsIgnoreCase("CS_GPS")
+                    || TEMSourceData.mode[i].equalsIgnoreCase("SER_GPS")) {
+                int segments = (int) (Math.ceil(unitChannelPoints * TEMSourceData.channels[i] * 4.0 / 512));
+                raf.seek(segments * 512 + 512);
+                XYSeries currentSeries = new XYSeries("时间电流值", false, false);
+                double currentRate = 1600000;
+                double sumStart = 0;
+                double sumEnd = 0;
+                try {
+                    for (int m = 0; m < 1250; m++) {
+//                        double value = raf.readInt() * 3300.0 * -1 / 4096 / 75;
+                        byte bb[] = new byte[4];
+                        raf.read(bb);
+                        double value = byteArrayToInt(bb) * 3300.0 * -1 / 4096 / 75;
+//                    System.out.println(raf.getFilePointer());
+                        if (m < 50) {//计算前50点的平均值
+                            sumStart += value;
+                        } else if (m > 1200) {//计算后50点的平均值
+                            sumEnd += value;
+                        }
+                        currentSeries.add((m + 1) * 1000.0 * 1000 / currentRate, value);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+
+                }
+                double avCurrentS = sumStart / 50;
+                double avCurrentE = sumEnd / 50;
+                TEMSourceData.current[i] = Double.parseDouble(df.format(Math.abs(avCurrentS - avCurrentE)));
+//                System.out.println(segments + "电压扇区；" + "avCurrentS=" + avCurrentS + " avCurrentE=" + avCurrentE);
+            }
             raf.close();
         }
+
         //删除文件夹
         deleteFile(path);
         return true;
