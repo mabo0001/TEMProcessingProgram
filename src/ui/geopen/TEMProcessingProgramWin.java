@@ -1240,6 +1240,7 @@ public class TEMProcessingProgramWin extends JFrame {
                     double time = sampletRate * (m + 1) * 1000;
                     if (countsJ == 1) {
                         odc.xyseries1.add(time, TEMSourceData.temData[i][0][m] / dividend);
+//                        System.out.println(TEMSourceData.temData[i][0][m]+"-----"+TEMSourceData.temData[i][0][m] / dividend);
                     } else if (countsJ == 2) {
                         odc.xyseries1.add(time, TEMSourceData.temData[i][0][m] / dividend);
                         odc.xyseries2.add(time, TEMSourceData.temData[i][1][m] / dividend);

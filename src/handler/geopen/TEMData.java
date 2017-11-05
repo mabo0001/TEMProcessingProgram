@@ -393,7 +393,6 @@ public class TEMData {
         byte[] buffer;
         int pos = -1;
         for (int i = 0; i < files.length; i++) {
-
             path = makeFileDir(files[i]);//生成文件夹
             raf = new RandomAccessFile(files[i], "rw");
             int fileLength = (int) files[i].length();
@@ -402,6 +401,7 @@ public class TEMData {
             DataInputStream dis = new DataInputStream(fis);
             dis.read(buffer);
             dis.close();
+            int length = (int) raf.length();
 //             System.out.println(files[i].getName());
             if (pos == -1) {
                 for (int j = 0; j < fileLength; j += 8) {
@@ -413,22 +413,23 @@ public class TEMData {
                     }
                 }
             }
-            for (int k = 0; k < 1000; k++) {
-                if (k * pos > raf.length()) {
-                    break;
-                }
-                raf.seek(0);
-                raf.seek(k * pos);
+            int remainder = length % pos;
+            int N= length / pos;
+            System.out.println( N);
+            if (remainder != 0) {
+                N= (int) Math.round(length*1.0 / pos);
+            }
+            System.out.println(remainder);
+            System.out.println( N);
+            for (int k = 0; k < N; k++) {
+                int poss = k * pos;
+                raf.seek(poss);
                 String station = files[i].getName().substring(0, 5);
-                String path2 = path + "\\" + station + extractHeadInfor(raf, k * pos) + ".TM";
+                String path2 = path + "\\" + station + extractHeadInfor(raf, poss) + ".TM";
                 File file1 = new File(path2);
                 FileOutputStream fos = new FileOutputStream(file1);
                 DataOutputStream dos = new DataOutputStream(fos);
-                if (k - 1 < 0) {
-                    dos.write(Arrays.copyOfRange(buffer, 0, pos));
-                } else {
-                    dos.write(Arrays.copyOfRange(buffer, (k - 1) * pos, k * pos));
-                }
+                dos.write(Arrays.copyOfRange(buffer, poss, (k+1) * pos));
                 dos.close();
             }
         }
@@ -705,7 +706,7 @@ public class TEMData {
             byte[] mode = new byte[8];
             raf.read(mode);
             TEMSourceData.mode[i] = new String(mode, "ASCII");
-            System.out.println(TEMSourceData.mode[i]);
+//            System.out.println(TEMSourceData.mode[i]);
             //初始化其他的值默认为0D
             TEMSourceData.trWidth[i] = 1D;//Tx边长X(m)
             TEMSourceData.trLength[i] = 1D;//Tx边长Y(m)
@@ -816,6 +817,7 @@ public class TEMData {
                         try {
                             if (TEMSourceData.fundfrequency[i] >= 5) {//25Hz 高速采集
                                 double value = 8192 * (raf.readInt() * 1.0 / TEMSourceData.gain[i] / Math.pow(2, 18));//伏特
+//                                System.out.println(value+"******");
                                 xyseries[m].add((j + 1) * 1000.0 / 500000 - 0.001, value);
                                 if (j >= 0 && j < length1 - 1) {
                                     interplationXYSeries(xyseries[m], 0);
