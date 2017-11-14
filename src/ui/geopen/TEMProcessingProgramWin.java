@@ -972,28 +972,21 @@ public class TEMProcessingProgramWin extends JFrame {
             //判定读取的文件类型
             if (temData.flagFileType == 0) {//tm
                 paraDialog.chooseTimeWinCheckBox.setEnabled(true);
-                paraDialog.chooseTimeWinCheckBox.setSelected(false);
+                paraDialog.chooseTimeWinCheckBox.setSelected(true);
             } else if (temData.flagFileType == 1) {//gptm
                 if (TEMSourceData.integrationValue.size() == 0) {//代表没有积分
                     paraDialog.chooseTimeWinCheckBox.setEnabled(true);
                     paraDialog.chooseTimeWinCheckBox.setSelected(false);
-                } else if (TEMSourceData.integrationValue.size() != 0) {
-                    paraDialog.chooseTimeWinCheckBox.setEnabled(false);
-                    paraDialog.chooseTimeWinCheckBox.setSelected(false);
-                }
+                } 
+//                else if (TEMSourceData.integrationValue.size() != 0) {
+//                    paraDialog.chooseTimeWinCheckBox.setEnabled(false);
+//                    paraDialog.chooseTimeWinCheckBox.setSelected(false);
+//                }
             }
-//            //判断是否积分 gptm文件
-//            if (temData.flagFileType == 1 && TEMSourceData.integrationValue.size() == 0) {
-//                paraDialog.chooseTimeWinCheckBox.setEnabled(true);
-//                paraDialog.pos_integrationButton.setEnabled(true);
-//                paraDialog.chooseTimeWinCheckBoxSelected();
-//            }
             paraDialog.pack();
             //设定最后一列为jcheckbox
             int counts = pointNode.getChildCount();
             Object[] strs = new Object[20];
-//            Object[] strs1 = {"", "", "", "", "", "", "", "", "", "", "", "",
-//                "", "", "", "", "", false, true, null};
             DefaultTableModel tableModel = ((DefaultTableModel) paraDialog.pointsParasTable.getModel());
             for (int i = 0; i < counts; i++) {
                 strs[0] = i + 1 + "";
@@ -1028,7 +1021,18 @@ public class TEMProcessingProgramWin extends JFrame {
             tcm.getColumn(18).setCellEditor(new CheckBoxCellEditor());
             tcm.getColumn(19).setCellRenderer(new CWCheckBoxRenderer());
             tcm.getColumn(19).setCellEditor(new CheckBoxCellEditor());
-
+            //选定通道 更新
+            for (int i = 0; i < counts; i++) {
+                if (paraDialog.selectC[0] == false) {
+                    TEMShowingParaSetDialog.pointsParasTable.setValueAt(false, i, 17);
+                }
+                if (paraDialog.selectC[1] == false) {
+                    TEMShowingParaSetDialog.pointsParasTable.setValueAt(false, i, 18);
+                }
+                if (paraDialog.selectC[2] == false) {
+                    TEMShowingParaSetDialog.pointsParasTable.setValueAt(false, i, 19);
+                }
+            }
         } else {
             JOptionPane.showMessageDialog(this, "无测点数据文件，请先读取文件！");
             return;

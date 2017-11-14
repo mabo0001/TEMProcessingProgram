@@ -36,6 +36,7 @@ public class TEMFileFilter extends JFileChooser {
 
     public void addFilter() {
         this.addChoosableFileFilter(new MyFileFilter(new String[]{".gptm"}, "gptm (*.gptm)")); 
+        this.addChoosableFileFilter(new MyFileFilter(new String[]{".ctm"}, "ctm (*.ctm)"));
         this.addChoosableFileFilter(new MyFileFilter(new String[]{".tm"}, "tm (*.tm)"));
     }
 

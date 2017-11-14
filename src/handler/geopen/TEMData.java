@@ -40,7 +40,7 @@ public class TEMData {
     //文件过滤器
     private TEMFileFilter fileFilter;
     //标记读取的是gptm文件还是tm文件
-    public int flagFileType = -1;//0标示tm；1标示gptm 2标示已经积分 -1 标示出现错误 
+    public int flagFileType = -1;//0标示tm;1标示gptm;2标示已经积分;-1标示出现错误;3标示为ctm
     public File[] files = null;
     public static int flagGF = 0;//默认地面数据0
 
@@ -60,7 +60,7 @@ public class TEMData {
         fileFilter.setMultiSelectionEnabled(true);//设定可以选定多个文件
         if (fileFilter.showOpenDialog(frame) == TEMFileFilter.APPROVE_OPTION) {
             //初始化
-            if (fileFilter.getSuf().equalsIgnoreCase("tm")) {
+            if (fileFilter.getSuf().equalsIgnoreCase("tm") || fileFilter.getSuf().equalsIgnoreCase("ctm")) {
                 initalParameters();
                 try {
                     //抽取数据
@@ -80,7 +80,7 @@ public class TEMData {
                     JOptionPane.showMessageDialog(frame, ex.toString());
                     return null;
                 }
-            } else if (fileFilter.getSuf().equalsIgnoreCase("usf")) {//当读取的是usf数据
+            } else if (fileFilter.getSuf().equalsIgnoreCase("ctm")) {//当读取的是usf数据
             } else if (fileFilter.getSuf().equalsIgnoreCase("gptm")) {//当读取的是gptm数据
                 //初始化
                 initalParameters();
@@ -392,6 +392,7 @@ public class TEMData {
         String path = "";
         byte[] buffer;
         int pos = -1;
+        String suf = files[0].getName().split("[.]")[1];//区分 tm 和 ctm扩展名
         for (int i = 0; i < files.length; i++) {
             path = makeFileDir(files[i]);//生成文件夹
             raf = new RandomAccessFile(files[i], "rw");
@@ -414,22 +415,19 @@ public class TEMData {
                 }
             }
             int remainder = length % pos;
-            int N= length / pos;
-            System.out.println( N);
+            int N = length / pos;
             if (remainder != 0) {
-                N= (int) Math.round(length*1.0 / pos);
+                N = (int) Math.round(length * 1.0 / pos);
             }
-            System.out.println(remainder);
-            System.out.println( N);
             for (int k = 0; k < N; k++) {
                 int poss = k * pos;
                 raf.seek(poss);
                 String station = files[i].getName().substring(0, 5);
-                String path2 = path + "\\" + station + extractHeadInfor(raf, poss) + ".TM";
+                String path2 = path + "\\" + station + extractHeadInfor(raf, poss) + "." + suf;
                 File file1 = new File(path2);
                 FileOutputStream fos = new FileOutputStream(file1);
                 DataOutputStream dos = new DataOutputStream(fos);
-                dos.write(Arrays.copyOfRange(buffer, poss, (k+1) * pos));
+                dos.write(Arrays.copyOfRange(buffer, poss, (k + 1) * pos));
                 dos.close();
             }
         }
@@ -815,7 +813,7 @@ public class TEMData {
                     for (int m = 0; m < channels; m++) {//通道数
                         //读取数据
                         try {
-                            if (TEMSourceData.fundfrequency[i] >= 5) {//25Hz 高速采集
+                            if (TEMSourceData.fundfrequency[i] >= 5) {//高速采集
                                 double value = 8192 * (raf.readInt() * 1.0 / TEMSourceData.gain[i] / Math.pow(2, 18));//伏特
 //                                System.out.println(value+"******");
                                 xyseries[m].add((j + 1) * 1000.0 / 500000 - 0.001, value);

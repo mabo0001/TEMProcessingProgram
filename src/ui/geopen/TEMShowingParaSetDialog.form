@@ -445,9 +445,11 @@
                 <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                   <Color blue="ff" green="0" red="0" type="rgb"/>
                 </Property>
+                <Property name="selected" type="boolean" value="true"/>
                 <Property name="text" type="java.lang.String" value="&#x79ef;&#x5206;&#x65f6;&#x7a97;"/>
               </Properties>
               <Events>
+                <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="chooseTimeWinCheckBoxStateChanged"/>
                 <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="chooseTimeWinCheckBoxItemStateChanged"/>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="chooseTimeWinCheckBoxActionPerformed"/>
               </Events>
@@ -522,7 +524,6 @@
                     <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
                       <Connection code="&quot;&lt;html&gt;&quot; + &quot;25Hz&#xff1a;&lt;b&gt;&quot; + 10 + &quot; &lt;/b&gt;&lt;br&gt; &quot; + &quot;12.5Hz&#xff1a;&lt;b&gt;&quot; +20 + &quot; &lt;/b&gt;&lt;br&gt; &quot;+ &quot;6.25Hz&#xff1a;&lt;b&gt;&quot; + 40 + &quot; &lt;/b&gt;&lt;br&gt; &quot;+ &quot;3.125Hz&#xff1a;&lt;b&gt;&quot; +80 + &quot; &lt;/b&gt;&lt;br&gt; &quot;+ &quot;25Hz &#x9ad8;&#xff1a;&lt;b&gt;&quot; + 10 + &quot; &lt;/b&gt;&lt;br&gt; &quot;+ &quot;50Hz &#x9ad8;&#xff1a;&lt;b&gt;&quot; +5 + &quot; &lt;/b&gt;&lt;br&gt; &quot;+ &quot;100Hz &#x9ad8;&#xff1a;&lt;b&gt;&quot; +2.5 + &quot; &lt;/b&gt;&lt;br&gt; &quot;+ &quot;&lt;/html&gt;&quot;" type="code"/>
                     </Property>
-                    <Property name="enabled" type="boolean" value="false"/>
                   </Properties>
                   <AuxValues>
                     <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="9"/>
@@ -533,7 +534,6 @@
                     <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
                       <SpinnerModel initial="30" maximum="1200" minimum="1" numberType="java.lang.Integer" stepSize="1" type="number"/>
                     </Property>
-                    <Property name="enabled" type="boolean" value="false"/>
                   </Properties>
                   <AuxValues>
                     <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="9"/>
@@ -552,7 +552,6 @@
                     <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
                       <Connection code="&quot;&lt;html&gt;&quot; + &quot;25Hz&#xff1a;&lt;b&gt;&quot; + 0.033 + &quot; &lt;/b&gt;&lt;br&gt; &quot; + &quot;12.5Hz&#xff1a;&lt;b&gt;&quot; + 0.033 + &quot; &lt;/b&gt;&lt;br&gt; &quot;+ &quot;6.25Hz&#xff1a;&lt;b&gt;&quot; + 0.033 + &quot; &lt;/b&gt;&lt;br&gt; &quot;+ &quot;3.125Hz&#xff1a;&lt;b&gt;&quot; + 0.067 + &quot; &lt;/b&gt;&lt;br&gt; &quot;+ &quot;25Hz &#x9ad8;&#xff1a;&lt;b&gt;&quot; + 0.001 + &quot; &lt;/b&gt;&lt;br&gt; &quot;+ &quot;50Hz &#x9ad8;&#xff1a;&lt;b&gt;&quot; +0.001 + &quot; &lt;/b&gt;&lt;br&gt; &quot;+ &quot;100Hz &#x9ad8;&#xff1a;&lt;b&gt;&quot; +0.001 + &quot; &lt;/b&gt;&lt;br&gt; &quot;+ &quot;&lt;/html&gt;&quot;" type="code"/>
                     </Property>
-                    <Property name="enabled" type="boolean" value="false"/>
                   </Properties>
                   <AuxValues>
                     <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="9"/>
@@ -603,7 +602,6 @@
                 <Component class="javax.swing.JButton" name="pos_integrationButton">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="&#x79ef;&#x5206;"/>
-                    <Property name="enabled" type="boolean" value="false"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="pos_integrationButtonActionPerformed"/>

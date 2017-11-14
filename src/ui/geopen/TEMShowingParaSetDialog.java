@@ -67,6 +67,8 @@ public class TEMShowingParaSetDialog extends javax.swing.JDialog implements Prop
     private int arrayNum = 0;//0中心回线1大定源2重叠回线
     //大定源是否超出界限
     private boolean outBourndary = false;
+    //保存通道是否选择
+    public boolean selectC[] = new boolean[]{true, true, true};
 
     /**
      * Creates new form TEMShowingParaSetDialog
@@ -148,12 +150,29 @@ public class TEMShowingParaSetDialog extends javax.swing.JDialog implements Prop
                                 } else {
                                     if ((Boolean) table.getValueAt(i, countColumn) == true) {
                                         table.setValueAt(false, i, countColumn);
+                                        if (i == 0) {
+                                            if (countColumn == 17) {
+                                                selectC[0] = false;//17
+                                            } else if (countColumn == 18) {
+                                                selectC[1] = false;//18
+                                            } else {
+                                                selectC[2] = false;//19
+                                            }
+                                        }
                                     } else {
                                         table.setValueAt(true, i, countColumn);
+                                        if (i == 0) {
+                                            if (countColumn == 17) {
+                                                selectC[0] = true;//17
+                                            } else if (countColumn == 18) {
+                                                selectC[1] = true;//18
+                                            } else {
+                                                selectC[2] = true;//19
+                                            }
+                                        }
                                     }
                                 }
                             }
-
                         }
                     } else if (countColumn == 14) {//装置型式
                         if (arrayNum == 0) {
@@ -364,7 +383,13 @@ public class TEMShowingParaSetDialog extends javax.swing.JDialog implements Prop
         jScrollPane1.setViewportView(pointsParasTable);
 
         chooseTimeWinCheckBox.setForeground(new java.awt.Color(0, 0, 255));
+        chooseTimeWinCheckBox.setSelected(true);
         chooseTimeWinCheckBox.setText("积分时窗");
+        chooseTimeWinCheckBox.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                chooseTimeWinCheckBoxStateChanged(evt);
+            }
+        });
         chooseTimeWinCheckBox.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 chooseTimeWinCheckBoxItemStateChanged(evt);
@@ -384,16 +409,13 @@ public class TEMShowingParaSetDialog extends javax.swing.JDialog implements Prop
 
         endTSpinner.setModel(new javax.swing.SpinnerNumberModel(10.0d, 0.0010d, 80.0d, 0.0010d));
         endTSpinner.setToolTipText("<html>" + "25Hz：<b>" + 10 + " </b><br> " + "12.5Hz：<b>" +20 + " </b><br> "+ "6.25Hz：<b>" + 40 + " </b><br> "+ "3.125Hz：<b>" +80 + " </b><br> "+ "25Hz 高：<b>" + 10 + " </b><br> "+ "50Hz 高：<b>" +5 + " </b><br> "+ "100Hz 高：<b>" +2.5 + " </b><br> "+ "</html>");
-        endTSpinner.setEnabled(false);
 
         timeWins.setModel(new javax.swing.SpinnerNumberModel(30, 1, 1200, 1));
-        timeWins.setEnabled(false);
 
         currentLab2.setText("起始时间");
 
         startTSpinner.setModel(new javax.swing.SpinnerNumberModel(Double.valueOf(0.0010d), Double.valueOf(0.0010d), null, Double.valueOf(0.0010d)));
         startTSpinner.setToolTipText("<html>" + "25Hz：<b>" + 0.033 + " </b><br> " + "12.5Hz：<b>" + 0.033 + " </b><br> "+ "6.25Hz：<b>" + 0.033 + " </b><br> "+ "3.125Hz：<b>" + 0.067 + " </b><br> "+ "25Hz 高：<b>" + 0.001 + " </b><br> "+ "50Hz 高：<b>" +0.001 + " </b><br> "+ "100Hz 高：<b>" +0.001 + " </b><br> "+ "</html>");
-        startTSpinner.setEnabled(false);
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -434,7 +456,6 @@ public class TEMShowingParaSetDialog extends javax.swing.JDialog implements Prop
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "编辑处理", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.ABOVE_TOP, new java.awt.Font("宋体", 0, 12), new java.awt.Color(0, 0, 255))); // NOI18N
 
         pos_integrationButton.setText("积分");
-        pos_integrationButton.setEnabled(false);
         pos_integrationButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 pos_integrationButtonActionPerformed(evt);
@@ -931,7 +952,7 @@ public class TEMShowingParaSetDialog extends javax.swing.JDialog implements Prop
     }
     private void chooseTimeWinCheckBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chooseTimeWinCheckBoxItemStateChanged
         // TODO add your handling code here:
-        chooseTimeWinCheckBoxActionPerformed(null);
+//         chooseTimeWinCheckBoxSelected();
     }//GEN-LAST:event_chooseTimeWinCheckBoxItemStateChanged
     /**
      * 数据编辑
@@ -1037,6 +1058,12 @@ public class TEMShowingParaSetDialog extends javax.swing.JDialog implements Prop
             setShowingParaPop.show(pointsParasTable, evt.getX(), evt.getY());
         }
     }//GEN-LAST:event_pointsParasTableMouseReleased
+
+    private void chooseTimeWinCheckBoxStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_chooseTimeWinCheckBoxStateChanged
+        // TODO add your handling code here:  chooseTimeWinCheckBoxSelected();
+          chooseTimeWinCheckBoxSelected();
+    }//GEN-LAST:event_chooseTimeWinCheckBoxStateChanged
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton cancelButton;
     private javax.swing.JButton cancelButton1;
