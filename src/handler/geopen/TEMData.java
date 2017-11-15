@@ -23,6 +23,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.XYSeries;
@@ -54,9 +55,20 @@ public class TEMData {
      * @param frame 主界面
      */
     public File[] openFileButtAction() {
-        //读取文件
         File[] files = null;
+        //读取文件
         fileFilter = new TEMFileFilter(ConstantPara.fileAbsPath);
+        customFileFilterFormat.removeFileFilter(fileFilter);
+        if (TEMData.flagGF == 1) {//ctm 有别与之前老版本 包含电流数据
+            customFileFilterFormat.setFileFilter(fileFilter,
+                    new customFileFilterFormat(new String[]{".gptm"}, "gptm (*.gptm)"),
+                    new customFileFilterFormat(new String[]{".ctm"}, "ctm (*.ctm)"));
+        } else {
+            customFileFilterFormat.setFileFilter(fileFilter,
+                    new customFileFilterFormat(new String[]{".gptm"}, "gptm (*.gptm)"),
+                    new customFileFilterFormat(new String[]{".tm"}, "tm (*.tm)"));
+        }
+        
         fileFilter.setMultiSelectionEnabled(true);//设定可以选定多个文件
         if (fileFilter.showOpenDialog(frame) == TEMFileFilter.APPROVE_OPTION) {
             //初始化

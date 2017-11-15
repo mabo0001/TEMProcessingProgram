@@ -1315,6 +1315,7 @@ public class TEMProcessingProgramWin extends JFrame {
     private void flyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_flyButtonActionPerformed
         // TODO add your handling code here:
         TEMData.flagGF = 1;
+        
         GroundOrAirDia.setVisible(false);
     }//GEN-LAST:event_flyButtonActionPerformed
     public void saveFile(TEMUSFFileFilter geopenFileFilter) throws IOException, ClassNotFoundException {
