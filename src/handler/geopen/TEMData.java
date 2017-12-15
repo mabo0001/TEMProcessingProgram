@@ -59,7 +59,7 @@ public class TEMData {
         //读取文件
         fileFilter = new TEMFileFilter(ConstantPara.fileAbsPath);
         customFileFilterFormat.removeFileFilter(fileFilter);
-        if (TEMData.flagGF == 1) {//ctm 有别与之前老版本 包含电流数据
+        if (TEMData.flagGF == 1) {//ctm 有别于之前老版本；包含电流数据
             customFileFilterFormat.setFileFilter(fileFilter,
                     new customFileFilterFormat(new String[]{".gptm"}, "gptm (*.gptm)"),
                     new customFileFilterFormat(new String[]{".ctm"}, "ctm (*.ctm)"));
@@ -68,7 +68,7 @@ public class TEMData {
                     new customFileFilterFormat(new String[]{".gptm"}, "gptm (*.gptm)"),
                     new customFileFilterFormat(new String[]{".tm"}, "tm (*.tm)"));
         }
-        
+
         fileFilter.setMultiSelectionEnabled(true);//设定可以选定多个文件
         if (fileFilter.showOpenDialog(frame) == TEMFileFilter.APPROVE_OPTION) {
             //初始化
@@ -270,21 +270,20 @@ public class TEMData {
         Collections.sort(fileList, new IntegerCompartor());
         files = (File[]) fileList.toArray();
         String path = "";
-        if (flagGF == 1) {//连续采集数据
+        if (flagGF == 1) {//连续采集数据 飞行
             path = splitFiles(files);
             this.files = new File(path).listFiles();
         } else {
             this.files = files;
         }
-        boolean hasGPS = firstJustifiedFileType(this.files);//初始化数组
 
-        System.out.println(hasGPS);
-//        hasGPS=true;
+        boolean hasGPS = firstJustifiedFileType(this.files);//初始化数组
         boolean error;
+
         if (hasGPS == true) {//老文件
             error = readFiles(this.files, path);//读取文件数据
         } else {//新文件
-            error = read_HighLowFile(this.files);
+            error = read_HighLowFile(this.files, path);
         }
         if (error == false) {
             return null;
@@ -400,14 +399,14 @@ public class TEMData {
      */
     public String splitFiles(File[] files) throws FileNotFoundException, IOException {
         //分割文件
-        RandomAccessFile raf = null;
-        String path = "";
         byte[] buffer;
         int pos = -1;
         String suf = files[0].getName().split("[.]")[1];//区分 tm 和 ctm扩展名
+        String path = makeFileDir(new File("data"));
+//        System.out.println(files.length);
         for (int i = 0; i < files.length; i++) {
-            path = makeFileDir(files[i]);//生成文件夹
-            raf = new RandomAccessFile(files[i], "rw");
+//            path = makeFileDir(files[i]);//生成文件夹
+            RandomAccessFile raf = new RandomAccessFile(files[i], "rw");
             int fileLength = (int) files[i].length();
             buffer = new byte[fileLength];
             FileInputStream fis = new FileInputStream(files[i]);
@@ -426,15 +425,17 @@ public class TEMData {
                     }
                 }
             }
+
             int remainder = length % pos;
             int N = length / pos;
             if (remainder != 0) {
                 N = (int) Math.round(length * 1.0 / pos);
             }
+            String station = files[i].getName().substring(0, 5);//站点名
+//            System.out.println(station);
             for (int k = 0; k < N; k++) {
                 int poss = k * pos;
                 raf.seek(poss);
-                String station = files[i].getName().substring(0, 5);
                 String path2 = path + "\\" + station + extractHeadInfor(raf, poss) + "." + suf;
                 File file1 = new File(path2);
                 FileOutputStream fos = new FileOutputStream(file1);
@@ -637,7 +638,7 @@ public class TEMData {
      * @throws FileNotFoundException
      * @throws IOException
      */
-    public boolean read_HighLowFile(File[] files1) throws FileNotFoundException, IOException {
+    public boolean read_HighLowFile(File[] files1, String path) throws FileNotFoundException, IOException {
         RandomAccessFile raf = null;
 //        //存储所有文件的GPS信息
         int length = files1.length;
@@ -894,6 +895,8 @@ public class TEMData {
             }
             raf.close();
         }
+        //删除文件夹
+        deleteFile(path);
         return true;
     }
 
@@ -1070,25 +1073,55 @@ public class TEMData {
                 byte[] gpsInf = new byte[32]; //经纬度
                 raf.read(gpsInf);//读取gps 义
                 String gpsInfStr = new String(gpsInf);
+//                System.out.println(gpsInfStr);
                 String[] splitStrs = gpsInfStr.split(",");
-                //截取纬度
-                String[] latitudeSplit = splitStrs[1].split("[.]");
-                String pointLat = latitudeSplit[0].substring(latitudeSplit[0].length() - 2, latitudeSplit[0].length());
-                String degreeLat = latitudeSplit[0].substring(1, latitudeSplit[0].length() - 2);
-                String concat = pointLat + "." + latitudeSplit[1];
-                double pointLatV = Double.parseDouble(concat);
-                TEMSourceData.latitude[i] = degreeLat + "°" + pointLatV + "' " + splitStrs[1].substring(0, 1);
-                //经度
-                String[] longitudeSplit = splitStrs[0].split("[.]");
-                String pointLong = longitudeSplit[0].substring(longitudeSplit[0].length() - 2, longitudeSplit[0].length());
-                String degreeLong = longitudeSplit[0].substring(1, longitudeSplit[0].length() - 2);
-                String concatLong = pointLong + "." + longitudeSplit[1];
-                double pointLongV = Double.parseDouble(concatLong);
-                TEMSourceData.longtitude[i] = degreeLong + "°" + pointLongV + "' " + splitStrs[0].substring(0, 1);
+                String concatLong = "";
+                String degreeLong = "";
+                try {
+                    //截取纬度
+                    String[] latitudeSplit = splitStrs[1].split("[.]");
+                    String pointLat = latitudeSplit[0].substring(latitudeSplit[0].length() - 2, latitudeSplit[0].length());
+                    String degreeLat = latitudeSplit[0].substring(1, latitudeSplit[0].length() - 2);
+                    String concat = pointLat + "." + latitudeSplit[1];
+                    double pointLatV = Double.parseDouble(concat);
+                    TEMSourceData.latitude[i] = degreeLat + "°" + pointLatV + "' " + splitStrs[1].substring(0, 1);
+                    //经度
+                    String[] longitudeSplit = splitStrs[0].split("[.]");
+                    String pointLong = longitudeSplit[0].substring(longitudeSplit[0].length() - 2, longitudeSplit[0].length());
+                    degreeLong = longitudeSplit[0].substring(1, longitudeSplit[0].length() - 2);
+                    concatLong = pointLong + "." + longitudeSplit[1];
+                    double pointLongV = Double.parseDouble(concatLong);
+                    TEMSourceData.longtitude[i] = degreeLong + "°" + pointLongV + "' " + splitStrs[0].substring(0, 1);
+                    //经纬度转换
+                    double pointLongVv = Double.parseDouble(concatLong) / 60;
+                    double degreeLongV = Double.parseDouble(degreeLong);
+                    double pointLatVv = Double.parseDouble(concat) / 60;
+                    double degreeLatV = Double.parseDouble(degreeLat);
+                    double log = degreeLongV + pointLongVv;
+                    double lat = degreeLatV + pointLatVv;
+//                double log = Double.parseDouble(format.format(degreeLongV + pointLongVv).toString());
+//                double lat = Double.parseDouble(format.format(degreeLatV + pointLatVv).toString());
+                    double[] xyPos = GaussToBLToGauss.GaussToBLToGauss(log, lat);
+                    TEMSourceData.rCenterX[i] = Double.parseDouble(format.format(xyPos[0]));
+                    TEMSourceData.rCenterY[i] = Double.parseDouble(format.format(xyPos[1]));
+                    TEMSourceData.rCenterZ[i] = 0D;
+
+                } catch (Exception e) {
+                    TEMSourceData.latitude[i] = "Error";
+                    TEMSourceData.longtitude[i] = "Error";
+                    TEMSourceData.status[i] = "NO";
+                    TEMSourceData.rCenterX[i] = 0;
+                    TEMSourceData.rCenterY[i] = 0;
+                    TEMSourceData.rCenterZ[i] = 0D;
+                    raf.seek(8 + 128 + 32);
+                }
+
                 byte[] gpsState = new byte[2];//定位ok no
                 raf.read(gpsState);//定位状态
+
                 String gpsStateStr = new String(gpsState);
                 TEMSourceData.status[i] = gpsStateStr;
+
                 byte[] fileName = new byte[16];//文件名
                 raf.read(fileName);
                 byte[] gpsTime = new byte[19];//记录时间
@@ -1155,12 +1188,9 @@ public class TEMData {
                 TEMSourceData.mode[i] = new String(mode, "ASCII");
 //                System.out.println(TEMSourceData.mode[i]);
                 raf.skipBytes(512 - (int) raf.getFilePointer());//跳出文件头
-
-
                 if (dividend == -1) {
                     JOptionPane.showMessageDialog(null, files[i].getName() + "叠加次数不存在");
                 }
-
 //                TEMSourceData.temData[i] = new double[TEMSourceData.channels[i]][TEMSourceData.fundfrequency[i] * 300];//-2去掉前两个点 
 //                System.out.println(TEMSourceData.fundfrequency[i]);
                 if (TEMSourceData.fundfrequency[i] <= 2) {
@@ -1177,24 +1207,11 @@ public class TEMData {
                 TEMSourceData.trCenterY[i] = 0D;
                 TEMSourceData.trAngle[i] = 0D;
                 TEMSourceData.trTurns[i] = 1D;
-                //经纬度转换
-                double pointLongVv = Double.parseDouble(concatLong) / 60;
-                double degreeLongV = Double.parseDouble(degreeLong);
-                double pointLatVv = Double.parseDouble(concat) / 60;
-                double degreeLatV = Double.parseDouble(degreeLat);
-                double log = degreeLongV + pointLongVv;
-                double lat = degreeLatV + pointLatVv;
-//                double log = Double.parseDouble(format.format(degreeLongV + pointLongVv).toString());
-//                double lat = Double.parseDouble(format.format(degreeLatV + pointLatVv).toString());
-                double[] xyPos = GaussToBLToGauss.GaussToBLToGauss(log, lat);
-                TEMSourceData.rCenterX[i] = Double.parseDouble(format.format(xyPos[0]));
-                TEMSourceData.rCenterY[i] = Double.parseDouble(format.format(xyPos[1]));
-                TEMSourceData.rCenterZ[i] = 0D;
                 TEMSourceData.rArea[i] = 1D;
                 TEMSourceData.turnOffTime[i] = 0D;
                 TEMSourceData.current[i] = 1D;
             } catch (Exception e) {
-//                e.printStackTrace();
+                e.printStackTrace();
                 JOptionPane.showMessageDialog(frame, "文件：" + files[i].getName() + "GPS信息存在问题，请检查！");
                 initalParameters();
                 return false;
@@ -1263,7 +1280,6 @@ public class TEMData {
             }
             raf.close();
         }
-
         //删除文件夹
         deleteFile(path);
         return true;

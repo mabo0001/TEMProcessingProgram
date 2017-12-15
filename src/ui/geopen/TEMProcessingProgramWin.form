@@ -331,11 +331,11 @@
           <Component id="ToolBar" max="32767" attributes="0"/>
           <Component id="HandlerPanel" alignment="0" max="32767" attributes="0"/>
           <Group type="102" alignment="0" attributes="0">
-              <Component id="totalFilesLabel" pref="329" max="32767" attributes="0"/>
+              <Component id="totalFilesLabel" pref="331" max="32767" attributes="0"/>
               <EmptySpace min="-2" pref="0" max="-2" attributes="0"/>
-              <Component id="fileNameLabel" pref="331" max="32767" attributes="0"/>
-              <EmptySpace min="-2" max="-2" attributes="0"/>
-              <Component id="posLabel" pref="331" max="32767" attributes="0"/>
+              <Component id="fileNameLabel" pref="333" max="32767" attributes="0"/>
+              <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
+              <Component id="posLabel" pref="333" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -592,8 +592,8 @@
                   </AuxValues>
                   <Constraints>
                     <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
-                      <JTabbedPaneConstraints tabName="&#x6d4b;&#x70b9;&#x5750;&#x6807;">
-                        <Property name="tabTitle" type="java.lang.String" value="&#x6d4b;&#x70b9;&#x5750;&#x6807;"/>
+                      <JTabbedPaneConstraints tabName="TEM&#x5e03;&#x7f6e;&#x56fe;">
+                        <Property name="tabTitle" type="java.lang.String" value="TEM&#x5e03;&#x7f6e;&#x56fe;"/>
                       </JTabbedPaneConstraints>
                     </Constraint>
                   </Constraints>

@@ -29,6 +29,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.logging.Level;
@@ -143,8 +144,19 @@ public class TEMProcessingProgramWin extends JFrame {
                     try {// 点击不到节点会有异常弹出 捕获
                         //显示文件名
                         TreePath treePath = SelectedDataTree.getPathForLocation(e.getX(), e.getY());
-                        Object[] paths = treePath.getParentPath().getPath();//Jtree的格式[根节点名,节点名]
-                        if (treePath.getPathCount() == 3 && paths[1].toString().trim().equalsIgnoreCase("测点")) {//测点节点
+                        Object[] pathsAll = treePath.getPath();//Jtree的格式[根节点名,节点名]
+//                        Object[] paths = treePath.getParentPath().getPath();//Jtree的格式[根节点名,节点名]
+//                        System.out.println(paths.length);
+//                        System.out.println(pathsAll[1].toString().trim());
+                        if (pathsAll[1].toString().trim().equalsIgnoreCase("测点") && pathsAll.length == 2) {
+                            //删除
+                            if (e.getButton() == MouseEvent.BUTTON3) {
+                                saveUSFMenuItem.setVisible(true);
+                                deleteNodeMenuItem.setVisible(false);
+                                deleteNodePopupMenu.show(SelectedDataTree, e.getX(), e.getY());
+                            }
+                        }
+                        if (pathsAll.length == 3 && pathsAll[1].toString().trim().equalsIgnoreCase("测点")) {//测点节点
                             clearSeries();//清除标记的点
                             DefaultMutableTreeNode node = (DefaultMutableTreeNode) SelectedDataTree.getLastSelectedPathComponent();
                             fileName = node.getPath()[2].toString().trim();//获得文件名
@@ -162,15 +174,17 @@ public class TEMProcessingProgramWin extends JFrame {
 //                            //删除
                             if (e.getButton() == MouseEvent.BUTTON3) {
                                 saveUSFMenuItem.setVisible(false);
+                                deleteNodeMenuItem.setVisible(true);
                                 deleteNodePopupMenu.show(SelectedDataTree, e.getX(), e.getY());
                             }
-                        } else if (treePath.getPathCount() == 3 && paths[1].toString().trim().equalsIgnoreCase("自定义测线")) {
+                        } else if (pathsAll.length == 3 && pathsAll[1].toString().trim().equalsIgnoreCase("自定义测线")) {
                             DefaultMutableTreeNode node = (DefaultMutableTreeNode) SelectedDataTree.getLastSelectedPathComponent();
                             lineName = node.getPath()[2].toString().trim();//获得文件名
                             fileNameLabel.setText("当前自定义测线名：" + lineName);
                             //删除
                             if (e.getButton() == MouseEvent.BUTTON3) {
                                 saveUSFMenuItem.setVisible(true);
+                                deleteNodeMenuItem.setVisible(true);
                                 deleteNodePopupMenu.show(SelectedDataTree, e.getX(), e.getY());
                             }
                             //突出显示
@@ -736,7 +750,7 @@ public class TEMProcessingProgramWin extends JFrame {
 
         pointsPositionPanel.setBackground(new java.awt.Color(255, 255, 255));
         pointsPositionPanel.setLayout(new java.awt.GridLayout(1, 0));
-        dataVisualTabbedPane.addTab("测点坐标", pointsPositionPanel);
+        dataVisualTabbedPane.addTab("TEM布置图", pointsPositionPanel);
 
         originalDataPanel.setBackground(new java.awt.Color(255, 255, 255));
         originalDataPanel.setLayout(new java.awt.GridLayout(0, 1));
@@ -886,11 +900,11 @@ public class TEMProcessingProgramWin extends JFrame {
             .addComponent(ToolBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(HandlerPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(totalFilesLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 329, Short.MAX_VALUE)
+                .addComponent(totalFilesLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 331, Short.MAX_VALUE)
                 .addGap(0, 0, 0)
-                .addComponent(fileNameLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 331, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(posLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 331, Short.MAX_VALUE))
+                .addComponent(fileNameLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 333, Short.MAX_VALUE)
+                .addGap(0, 0, 0)
+                .addComponent(posLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 333, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -977,7 +991,7 @@ public class TEMProcessingProgramWin extends JFrame {
                 if (TEMSourceData.integrationValue.size() == 0) {//代表没有积分
                     paraDialog.chooseTimeWinCheckBox.setEnabled(true);
                     paraDialog.chooseTimeWinCheckBox.setSelected(false);
-                } 
+                }
 //                else if (TEMSourceData.integrationValue.size() != 0) {
 //                    paraDialog.chooseTimeWinCheckBox.setEnabled(false);
 //                    paraDialog.chooseTimeWinCheckBox.setSelected(false);
@@ -1215,6 +1229,7 @@ public class TEMProcessingProgramWin extends JFrame {
             dataVisualTabbedPane.remove(1);
         }
     }//GEN-LAST:event_dataVisualTabbedPaneStateChanged
+
     public void drawOriginalData() {
         //通道数据
         double sampletRate = 0;
@@ -1315,9 +1330,10 @@ public class TEMProcessingProgramWin extends JFrame {
     private void flyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_flyButtonActionPerformed
         // TODO add your handling code here:
         TEMData.flagGF = 1;
-        
+
         GroundOrAirDia.setVisible(false);
     }//GEN-LAST:event_flyButtonActionPerformed
+
     public void saveFile(TEMUSFFileFilter geopenFileFilter) throws IOException, ClassNotFoundException {
 //        TEMGeoPenFileFilter geopenFileFilter = new TEMGeoPenFileFilter();
         if (geopenFileFilter.showSaveDialog(this) == TEMUSFFileFilter.APPROVE_OPTION) {
@@ -1348,10 +1364,7 @@ public class TEMProcessingProgramWin extends JFrame {
         }
     }
 
-    public void saveUSFFormat(File file) throws IOException {
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode) SelectedDataTree.getLastSelectedPathComponent();
-        lineName = node.getPath()[2].toString().trim();//获得自定义测线名
-//        showingLineDatas(lineName);
+    public void sUSF(FileWriter fw, int counts, ArrayList linePoints, HashMap<ArrayList, String> xy_fileName) throws IOException {
         String seperator = "";
         int length1 = 16;
         int length2 = 10;
@@ -1359,158 +1372,330 @@ public class TEMProcessingProgramWin extends JFrame {
         String format2 = "%1$-" + length2 + "s" + seperator;
         DecimalFormat decimalFormat = new DecimalFormat("0.0000000E00");
         DecimalFormat format = new DecimalFormat("0.0");
-        if (TEMSourceData.integrationValue.size() != 0) {//只有存在积分数据 才能弹出
-            String fileName = "";
-            ArrayList linePoints = (ArrayList) TEMSourceData.lineName_XYList.get(lineName);
-            //写入文件头
-            FileWriter fw = new FileWriter(file);
-            fw.write("//USF: Universal Sounding Format");
+        for (int i = 0; i < counts; i++) {
+            if (xy_fileName == null) {
+                fileName = TEMSourceData.filesName[i];
+            } else {
+                fileName = xy_fileName.get(linePoints.get(i));
+            }
+            ArrayList voltage_time = TEMSourceData.integrationValue.get(fileName);//需要的参数
+            initialTable();
+            ArrayList<String> infor = findFileInformation(paraDialog.pointsParasTable, fileName);//0
+            //装置类型
+            if (infor.get(paraDialog.columm14).equals("中心回线")) {
+                fw.write("/ARRAY: CENTRAL LOOP TEM");
+            } else if (infor.get(paraDialog.columm14).equals("大定源")) {
+                fw.write("/ARRAY: FIXED LOOP TEM");
+            } else if (infor.get(paraDialog.columm14).equals("重叠回线")) {
+                fw.write("/ARRAY: COINCIDENT LOOP TEM");
+            }
             fw.write("\r\n");
-            fw.write("//SOUNDINGS: " + linePoints.size());
+            //方位角
+            fw.write("/AZIMUTH:       " + Double.parseDouble(infor.get(paraDialog.columm6)));
             fw.write("\r\n");
-            fw.write("//END");
+            //日期
+            try {
+                fw.write("/DATE:     " + fileName.substring(5, 13));
+            } catch (Exception e) {
+                fw.write("/DATE:     " + "");
+            }
             fw.write("\r\n");
+            //时间
+            try {
+                fw.write("/DAYTIME:     " + fileName.substring(13, 19));
+            } catch (Exception e) {
+                fw.write("/DAYTIME:     " + "");
+            }
             fw.write("\r\n");
-            for (int i = 0; i < linePoints.size(); i++) {
-                fileName = TEMSourceData.xy_fileName.get(linePoints.get(i));
-                ArrayList voltage_time = TEMSourceData.integrationValue.get(fileName);//需要的参数
-                initialTable();
-                ArrayList<String> infor = findFileInformation(paraDialog.pointsParasTable, fileName);//0
-                //装置类型
-//                System.out.println(infor + "," + infor.size());
-                if (infor.get(paraDialog.columm14).equals("中心回线")) {
-                    fw.write("/ARRAY: CENTRAL LOOP TEM");
-                } else if (infor.get(paraDialog.columm14).equals("大定源")) {
-                    fw.write("/ARRAY: FIXED LOOP TEM");
-                } else if (infor.get(paraDialog.columm14).equals("重叠回线")) {
-                    fw.write("/ARRAY: COINCIDENT LOOP TEM");
-                }
-                fw.write("\r\n");
-                //方位角
-                fw.write("/AZIMUTH:       " + Double.parseDouble(infor.get(paraDialog.columm6)));
-                fw.write("\r\n");
-                //日期
-                try {
-                    fw.write("/DATE:     " + fileName.substring(5, 13));
-                } catch (Exception e) {
-                    fw.write("/DATE:     " + "");
-                }
-                fw.write("\r\n");
-                //时间
-                try {
-                    fw.write("/DAYTIME:     " + fileName.substring(13, 19));
-                } catch (Exception e) {
-                    fw.write("/DAYTIME:     " + "");
-                }
-                fw.write("\r\n");
-                //线圈位置 大定源
-                if (infor.get(paraDialog.columm14).equals("大定源")) {
-                    String x = format.format(Double.parseDouble(infor.get(paraDialog.columm4)));
-                    String y = format.format(Double.parseDouble(infor.get(paraDialog.columm5)));
+            //线圈位置 大定源
+            if (infor.get(paraDialog.columm14).equals("大定源")) {
+                String x = format.format(Double.parseDouble(infor.get(paraDialog.columm4)));
+                String y = format.format(Double.parseDouble(infor.get(paraDialog.columm5)));
 //                    System.out.println(x);
-                    if (x.length() >= 7) {
-                        x = x.substring(x.length() - 7, x.length());
-                    }
-                    if (y.length() >= 7) {
-                        y = y.substring(y.length() - 7, y.length());
-                    }
-                    fw.write("/COIL_LOCATION:  " + x + ",  " + y);
-                } else {
-                    fw.write("/COIL_LOCATION:       0.0000000,       0.0000000");
-                }
-                fw.write("\r\n");
-                //发射线框边长
-                fw.write("/LOOP_SIZE:      " + Double.parseDouble(infor.get(paraDialog.columm2)) + "," + Double.parseDouble(infor.get(paraDialog.columm3)));
-                fw.write("\r\n");
-                //数据分段数
-                fw.write("/SWEEPS:            " + 1);
-                fw.write("\r\n");
-                //接收有效面积
-                fw.write("/COIL_SIZE:     " + infor.get(paraDialog.columm13));
-                fw.write("\r\n");
-                //电流
-                fw.write("/CURRENT:      " + infor.get(paraDialog.columm16));
-                fw.write("\r\n");
-                //发射线框匝数
-                fw.write("/LOOP_TURNS:            " + (int) Double.parseDouble(infor.get(paraDialog.columm7)));
-                fw.write("\r\n");
-                //关断时间
-                fw.write("/RAMP_TIME:       " + infor.get(paraDialog.columm15));
-                fw.write("\r\n");
-                //频率
-                int index = getIndex(TEMSourceData.filesName, fileName);
-                fw.write("/FREQUENCY:       " + changeFundFre(TEMSourceData.fundfrequency[index]).replace("Hz", ""));//转为字符基频TEMSourceData.fundfrequency[index]);
-                fw.write("\r\n");
-                //延迟
-                fw.write("/TIME_DELAY:      0.0");
-                fw.write("\r\n");
-                //测点位置
-                String x = format.format(Double.parseDouble(infor.get(paraDialog.columm8)));
-                String y = format.format(Double.parseDouble(infor.get(paraDialog.columm9)));
-                String z = format.format(Double.parseDouble(infor.get(paraDialog.columm10)));
                 if (x.length() >= 7) {
                     x = x.substring(x.length() - 7, x.length());
                 }
                 if (y.length() >= 7) {
                     y = y.substring(y.length() - 7, y.length());
                 }
-                if (z.length() >= 7) {
-                    z = z.substring(z.length() - 7, z.length());
-                }
-                fw.write("/LOCATION:  " + x + ",  " + y + ",  " + z);
-                fw.write("\r\n");
-                //数据点个数
-                fw.write("/POINTS:           " + ((ArrayList) voltage_time.get(0)).size());
-                fw.write("\r\n");
-                //测线名
-                fw.write("/SOUNDING_NAME: " + fileName);
+                fw.write("/COIL_LOCATION:  " + x + ",  " + y);
+            } else {
+                fw.write("/COIL_LOCATION:       0.0000000,       0.0000000");
+            }
+            fw.write("\r\n");
+            //发射线框边长
+            fw.write("/LOOP_SIZE:      " + Double.parseDouble(infor.get(paraDialog.columm2)) + "," + Double.parseDouble(infor.get(paraDialog.columm3)));
+            fw.write("\r\n");
+            //数据分段数
+            fw.write("/SWEEPS:            " + 1);
+            fw.write("\r\n");
+            //接收有效面积
+            fw.write("/COIL_SIZE:     " + infor.get(paraDialog.columm13));
+            fw.write("\r\n");
+            //电流
+            fw.write("/CURRENT:      " + infor.get(paraDialog.columm16));
+            fw.write("\r\n");
+            //发射线框匝数
+            fw.write("/LOOP_TURNS:            " + (int) Double.parseDouble(infor.get(paraDialog.columm7)));
+            fw.write("\r\n");
+            //关断时间
+            fw.write("/RAMP_TIME:       " + infor.get(paraDialog.columm15));
+            fw.write("\r\n");
+            //频率
+            int index = getIndex(TEMSourceData.filesName, fileName);
+            fw.write("/FREQUENCY:       " + changeFundFre(TEMSourceData.fundfrequency[index]).replace("Hz", ""));//转为字符基频TEMSourceData.fundfrequency[index]);
+            fw.write("\r\n");
+            //延迟
+            fw.write("/TIME_DELAY:      0.0");
+            fw.write("\r\n");
+            //测点位置
+            String x = format.format(Double.parseDouble(infor.get(paraDialog.columm8)));
+            String y = format.format(Double.parseDouble(infor.get(paraDialog.columm9)));
+            String z = format.format(Double.parseDouble(infor.get(paraDialog.columm10)));
+            int subL = 7;
+            if (x.length() >= subL) {
+                x = x.substring(x.length() - subL, x.length());
+            }
+            if (y.length() >= subL) {
+                y = y.substring(y.length() - subL, y.length());
+            }
+            if (z.length() >= subL) {
+                z = z.substring(z.length() - subL, z.length());
+            }
+            fw.write("/LOCATION:  " + x + ",  " + y + ",  " + z);
+            fw.write("\r\n");
+            //数据点个数
+            fw.write("/POINTS:           " + ((ArrayList) voltage_time.get(0)).size());
+            fw.write("\r\n");
+            //测线名
+            fw.write("/SOUNDING_NAME: " + fileName);
 //                fw.write("/SOUNDING_NAME: " + lineName);
-                fw.write("\r\n");
-                //编号
-                fw.write("/SOUNDING_NUMBER: " + (i + 1));
-                fw.write("\r\n");
-                //长度单位
-                fw.write("/LENGTH_UNITS: M");
-                fw.write("\r\n");
-                //电压单位
-                fw.write("/VOLTAGE_UNITS: V/AM2");
-                fw.write("\r\n");
-                //结束符
-                fw.write("/END");
-                fw.write("\r\n");
-                //表头
-                fw.write(String.format(format2, "INDEX,"));
-                fw.write(String.format(format2, "TIME,"));
-                fw.write(String.format(format2, "WIDTH,"));
-                fw.write(String.format(format2, "VOLTAGE,"));
-                fw.write(String.format(format2, "ERROR_BAR,"));
-                fw.write(String.format(format2, "MASK"));
-                fw.write("\r\n");
-                for (int j = 0; j < ((ArrayList) voltage_time.get(0)).size(); j++) {
+            fw.write("\r\n");
+            //编号
+            fw.write("/SOUNDING_NUMBER: " + (i + 1));
+            fw.write("\r\n");
+            //长度单位
+            fw.write("/LENGTH_UNITS: M");
+            fw.write("\r\n");
+            //电压单位
+            fw.write("/VOLTAGE_UNITS: V/AM2");
+            fw.write("\r\n");
+            //结束符
+            fw.write("/END");
+            fw.write("\r\n");
+            //表头
+            fw.write(String.format(format2, "INDEX,"));
+            fw.write(String.format(format2, "TIME,"));
+            fw.write(String.format(format2, "WIDTH,"));
+            fw.write(String.format(format2, "VOLTAGE,"));
+            fw.write(String.format(format2, "ERROR_BAR,"));
+            fw.write(String.format(format2, "MASK"));
+            fw.write("\r\n");
+            for (int j = 0; j < ((ArrayList) voltage_time.get(0)).size(); j++) {
 //                    System.out.println( ((ArrayList) voltage_time.get(1)).get(j));
-                    if (j == ((ArrayList) voltage_time.get(0)).size() - 1) {
-                        fw.write(String.format(format2, (j + 1) + ",")
-                                + String.format(format1, decimalFormat.format((Double) ((ArrayList) voltage_time.get(1)).get(j) / 1000) + ",")
-                                //                            + String.format(format1, decimalFormat.format((Double) ((ArrayList) voltage_time.get(7)).get(j) / 1000) + ",")
-                                + String.format(format1, decimalFormat.format(((Double) ((ArrayList) voltage_time.get(1)).get(j) - (Double) ((ArrayList) voltage_time.get(1)).get(j - 1)) / 1000) + ",")
-                                + String.format(format1, decimalFormat.format((Double) ((ArrayList) voltage_time.get(0)).get(j) / 1000) + ",")
-                                + 0 + ","
-                                + 1);
-                    } else {
-                        fw.write(String.format(format2, (j + 1) + ",")
-                                + String.format(format1, decimalFormat.format((Double) ((ArrayList) voltage_time.get(1)).get(j) / 1000) + ",")
-                                //                            + String.format(format1, decimalFormat.format((Double) ((ArrayList) voltage_time.get(7)).get(j) / 1000) + ",")
-                                + String.format(format1, decimalFormat.format(((Double) ((ArrayList) voltage_time.get(1)).get(j + 1) - (Double) ((ArrayList) voltage_time.get(1)).get(j)) / 1000) + ",")
-                                + String.format(format1, decimalFormat.format((Double) ((ArrayList) voltage_time.get(0)).get(j) / 1000) + ",")
-                                + 0 + ","
-                                + 1);
-                    }
-                    fw.write("\r\n");
+                if (j == ((ArrayList) voltage_time.get(0)).size() - 1) {
+                    fw.write(String.format(format2, (j + 1) + ",")
+                            + String.format(format1, decimalFormat.format((Double) ((ArrayList) voltage_time.get(1)).get(j) / 1000) + ",")
+                            //                            + String.format(format1, decimalFormat.format((Double) ((ArrayList) voltage_time.get(7)).get(j) / 1000) + ",")
+                            + String.format(format1, decimalFormat.format(((Double) ((ArrayList) voltage_time.get(1)).get(j) - (Double) ((ArrayList) voltage_time.get(1)).get(j - 1)) / 1000) + ",")
+                            + String.format(format1, decimalFormat.format((Double) ((ArrayList) voltage_time.get(0)).get(j) / 1000) + ",")
+                            + 0 + ","
+                            + 1);
+                } else {
+                    fw.write(String.format(format2, (j + 1) + ",")
+                            + String.format(format1, decimalFormat.format((Double) ((ArrayList) voltage_time.get(1)).get(j) / 1000) + ",")
+                            //                            + String.format(format1, decimalFormat.format((Double) ((ArrayList) voltage_time.get(7)).get(j) / 1000) + ",")
+                            + String.format(format1, decimalFormat.format(((Double) ((ArrayList) voltage_time.get(1)).get(j + 1) - (Double) ((ArrayList) voltage_time.get(1)).get(j)) / 1000) + ",")
+                            + String.format(format1, decimalFormat.format((Double) ((ArrayList) voltage_time.get(0)).get(j) / 1000) + ",")
+                            + 0 + ","
+                            + 1);
                 }
-                fw.write("/END");
                 fw.write("\r\n");
             }
-            fw.close();
+            fw.write("/END");
+            fw.write("\r\n");
+        }
+        fw.close();
+    }
+
+    public void saveUSFFormat(File file) throws IOException {
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode) SelectedDataTree.getLastSelectedPathComponent();
+        if (node.getPath().length == 2) {//导出全部测点
+            lineName = null;
+        } else if (node.getPath().length == 3) {//=3 导出侧线
+            lineName = node.getPath()[2].toString().trim();//获得自定义测线名
+        } else {
+            return;
+        }
+//        System.out.println(node.getPath().length + "++++");
+        if (TEMSourceData.integrationValue.size() != 0) {//只有存在积分数据 才能弹出
+            String fileName = "";
+            int counts = 0;
+            ArrayList linePoints = new ArrayList();
+            if (lineName == null) {
+                counts = TEMSourceData.filesName.length;
+            } else {
+                linePoints = (ArrayList) TEMSourceData.lineName_XYList.get(lineName);
+                counts = TEMSourceData.filesName.length;
+            }
+            //写入文件头
+            FileWriter fw = new FileWriter(file);
+            fw.write("//USF: Universal Sounding Format");
+            fw.write("\r\n");
+            fw.write("//SOUNDINGS: " + counts);
+            fw.write("\r\n");
+            fw.write("//END");
+            fw.write("\r\n");
+            fw.write("\r\n");
+            if (lineName == null) {
+                sUSF(fw, counts, null, null);
+            } else {
+                sUSF(fw, counts, linePoints, TEMSourceData.xy_fileName);
+                lineName = null;
+            }
+//            for (int i = 0; i < linePoints.size(); i++) {
+//                if (lineName == null) {
+//                } else {
+//                    fileName = TEMSourceData.xy_fileName.get(linePoints.get(i));
+//                }
+//                ArrayList voltage_time = TEMSourceData.integrationValue.get(fileName);//需要的参数
+//                initialTable();
+//                ArrayList<String> infor = findFileInformation(paraDialog.pointsParasTable, fileName);//0
+//                //装置类型
+////                System.out.println(infor + "," + infor.size());
+//                if (infor.get(paraDialog.columm14).equals("中心回线")) {
+//                    fw.write("/ARRAY: CENTRAL LOOP TEM");
+//                } else if (infor.get(paraDialog.columm14).equals("大定源")) {
+//                    fw.write("/ARRAY: FIXED LOOP TEM");
+//                } else if (infor.get(paraDialog.columm14).equals("重叠回线")) {
+//                    fw.write("/ARRAY: COINCIDENT LOOP TEM");
+//                }
+//                fw.write("\r\n");
+//                //方位角
+//                fw.write("/AZIMUTH:       " + Double.parseDouble(infor.get(paraDialog.columm6)));
+//                fw.write("\r\n");
+//                //日期
+//                try {
+//                    fw.write("/DATE:     " + fileName.substring(5, 13));
+//                } catch (Exception e) {
+//                    fw.write("/DATE:     " + "");
+//                }
+//                fw.write("\r\n");
+//                //时间
+//                try {
+//                    fw.write("/DAYTIME:     " + fileName.substring(13, 19));
+//                } catch (Exception e) {
+//                    fw.write("/DAYTIME:     " + "");
+//                }
+//                fw.write("\r\n");
+//                //线圈位置 大定源
+//                if (infor.get(paraDialog.columm14).equals("大定源")) {
+//                    String x = format.format(Double.parseDouble(infor.get(paraDialog.columm4)));
+//                    String y = format.format(Double.parseDouble(infor.get(paraDialog.columm5)));
+////                    System.out.println(x);
+//                    if (x.length() >= 7) {
+//                        x = x.substring(x.length() - 7, x.length());
+//                    }
+//                    if (y.length() >= 7) {
+//                        y = y.substring(y.length() - 7, y.length());
+//                    }
+//                    fw.write("/COIL_LOCATION:  " + x + ",  " + y);
+//                } else {
+//                    fw.write("/COIL_LOCATION:       0.0000000,       0.0000000");
+//                }
+//                fw.write("\r\n");
+//                //发射线框边长
+//                fw.write("/LOOP_SIZE:      " + Double.parseDouble(infor.get(paraDialog.columm2)) + "," + Double.parseDouble(infor.get(paraDialog.columm3)));
+//                fw.write("\r\n");
+//                //数据分段数
+//                fw.write("/SWEEPS:            " + 1);
+//                fw.write("\r\n");
+//                //接收有效面积
+//                fw.write("/COIL_SIZE:     " + infor.get(paraDialog.columm13));
+//                fw.write("\r\n");
+//                //电流
+//                fw.write("/CURRENT:      " + infor.get(paraDialog.columm16));
+//                fw.write("\r\n");
+//                //发射线框匝数
+//                fw.write("/LOOP_TURNS:            " + (int) Double.parseDouble(infor.get(paraDialog.columm7)));
+//                fw.write("\r\n");
+//                //关断时间
+//                fw.write("/RAMP_TIME:       " + infor.get(paraDialog.columm15));
+//                fw.write("\r\n");
+//                //频率
+//                int index = getIndex(TEMSourceData.filesName, fileName);
+//                fw.write("/FREQUENCY:       " + changeFundFre(TEMSourceData.fundfrequency[index]).replace("Hz", ""));//转为字符基频TEMSourceData.fundfrequency[index]);
+//                fw.write("\r\n");
+//                //延迟
+//                fw.write("/TIME_DELAY:      0.0");
+//                fw.write("\r\n");
+//                //测点位置
+//                String x = format.format(Double.parseDouble(infor.get(paraDialog.columm8)));
+//                String y = format.format(Double.parseDouble(infor.get(paraDialog.columm9)));
+//                String z = format.format(Double.parseDouble(infor.get(paraDialog.columm10)));
+//                if (x.length() >= 7) {
+//                    x = x.substring(x.length() - 7, x.length());
+//                }
+//                if (y.length() >= 7) {
+//                    y = y.substring(y.length() - 7, y.length());
+//                }
+//                if (z.length() >= 7) {
+//                    z = z.substring(z.length() - 7, z.length());
+//                }
+//                fw.write("/LOCATION:  " + x + ",  " + y + ",  " + z);
+//                fw.write("\r\n");
+//                //数据点个数
+//                fw.write("/POINTS:           " + ((ArrayList) voltage_time.get(0)).size());
+//                fw.write("\r\n");
+//                //测线名
+//                fw.write("/SOUNDING_NAME: " + fileName);
+////                fw.write("/SOUNDING_NAME: " + lineName);
+//                fw.write("\r\n");
+//                //编号
+//                fw.write("/SOUNDING_NUMBER: " + (i + 1));
+//                fw.write("\r\n");
+//                //长度单位
+//                fw.write("/LENGTH_UNITS: M");
+//                fw.write("\r\n");
+//                //电压单位
+//                fw.write("/VOLTAGE_UNITS: V/AM2");
+//                fw.write("\r\n");
+//                //结束符
+//                fw.write("/END");
+//                fw.write("\r\n");
+//                //表头
+//                fw.write(String.format(format2, "INDEX,"));
+//                fw.write(String.format(format2, "TIME,"));
+//                fw.write(String.format(format2, "WIDTH,"));
+//                fw.write(String.format(format2, "VOLTAGE,"));
+//                fw.write(String.format(format2, "ERROR_BAR,"));
+//                fw.write(String.format(format2, "MASK"));
+//                fw.write("\r\n");
+//                for (int j = 0; j < ((ArrayList) voltage_time.get(0)).size(); j++) {
+////                    System.out.println( ((ArrayList) voltage_time.get(1)).get(j));
+//                    if (j == ((ArrayList) voltage_time.get(0)).size() - 1) {
+//                        fw.write(String.format(format2, (j + 1) + ",")
+//                                + String.format(format1, decimalFormat.format((Double) ((ArrayList) voltage_time.get(1)).get(j) / 1000) + ",")
+//                                //                            + String.format(format1, decimalFormat.format((Double) ((ArrayList) voltage_time.get(7)).get(j) / 1000) + ",")
+//                                + String.format(format1, decimalFormat.format(((Double) ((ArrayList) voltage_time.get(1)).get(j) - (Double) ((ArrayList) voltage_time.get(1)).get(j - 1)) / 1000) + ",")
+//                                + String.format(format1, decimalFormat.format((Double) ((ArrayList) voltage_time.get(0)).get(j) / 1000) + ",")
+//                                + 0 + ","
+//                                + 1);
+//                    } else {
+//                        fw.write(String.format(format2, (j + 1) + ",")
+//                                + String.format(format1, decimalFormat.format((Double) ((ArrayList) voltage_time.get(1)).get(j) / 1000) + ",")
+//                                //                            + String.format(format1, decimalFormat.format((Double) ((ArrayList) voltage_time.get(7)).get(j) / 1000) + ",")
+//                                + String.format(format1, decimalFormat.format(((Double) ((ArrayList) voltage_time.get(1)).get(j + 1) - (Double) ((ArrayList) voltage_time.get(1)).get(j)) / 1000) + ",")
+//                                + String.format(format1, decimalFormat.format((Double) ((ArrayList) voltage_time.get(0)).get(j) / 1000) + ",")
+//                                + 0 + ","
+//                                + 1);
+//                    }
+//                    fw.write("\r\n");
+//                }
+//                fw.write("/END");
+//                fw.write("\r\n");
+//            }
+
         }
     }
 
@@ -1549,7 +1734,7 @@ public class TEMProcessingProgramWin extends JFrame {
             String str = selectedNode.getRoot().toString();
             double x = 0;//坐标
             double y = 0;//坐标
-            if (str.trim().endsWith(".TM")) {
+            if (str.trim().toUpperCase().endsWith(".TM") || str.trim().toUpperCase().endsWith(".CTM")) {
                 int index = 0;
                 if (pointNode.getChildCount() >= 0) {
                     for (int i = 0; i < TEMSourceData.filesName.length; i++) {
@@ -1572,6 +1757,8 @@ public class TEMProcessingProgramWin extends JFrame {
                 }
                 //数组移除
                 remove(index);
+                //设定文件数
+                totalFilesLabel.setText("文件总数：" + pointNode.getChildCount());
                 //移除集合
                 if (TEMChartPanle.series1.getItemCount() > 0) {
                     for (int i = 0; i < TEMChartPanle.series1.getItemCount(); i++) {
@@ -2001,6 +2188,41 @@ public class TEMProcessingProgramWin extends JFrame {
             }
         }
     }
+    public static String[] DEFAULT_FONT = new String[]{
+        "Table.font",
+        "TableHeader.font",
+        "CheckBox.font",
+        "Tree.font",
+        "Viewport.font",
+        "ProgressBar.font",
+        "RadioButtonMenuItem.font",
+        "ToolBar.font",
+        "ColorChooser.font",
+        "ToggleButton.font",
+        "Panel.font",
+        "TextArea.font",
+        "Menu.font",
+        "TableHeader.font",
+        "TextField.font",
+        "OptionPane.font",
+        "MenuBar.font",
+        "Button.font",
+        "Label.font",
+        "PasswordField.font",
+        "ScrollPane.font",
+        "MenuItem.font",
+        "ToolTip.font",
+        "List.font",
+        "EditorPane.font",
+        "Table.font",
+        "TabbedPane.font",
+        "RadioButton.font",
+        "CheckBoxMenuItem.font",
+        "TextPane.font",
+        "PopupMenu.font",
+        "TitledBorder.font",
+        "ComboBox.font"
+    };
 
     /**
      * @param args the command line arguments
@@ -2022,7 +2244,31 @@ public class TEMProcessingProgramWin extends JFrame {
         } catch (UnsupportedLookAndFeelException e) {
             e.printStackTrace();
         }
-        //</editor-fold>
+
+//        try {
+//            // 调整默认字体
+//            for (int i = 0; i < DEFAULT_FONT.length; i++) {
+//                UIManager.put(DEFAULT_FONT[i], new Font("微软雅黑", Font.PLAIN, 12));
+//            }
+//            BeautyEyeLNFHelper.frameBorderStyle = BeautyEyeLNFHelper.FrameBorderStyle.translucencyAppleLike;
+//            //设置此开关量为false即表示关闭之，BeautyEye LNF中默认是true
+//            BeautyEyeLNFHelper.translucencyAtFrameInactive = false;
+//            BeautyEyeLNFHelper.launchBeautyEyeLNF();
+//            UIManager.put("RootPane.setupButtonVisible", false);//设置功能屏蔽
+//            UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+//        } catch (ClassNotFoundException e) {
+//            e.printStackTrace();
+//        } catch (InstantiationException e) {
+//            e.printStackTrace();
+//        } catch (IllegalAccessException e) {
+//            e.printStackTrace();
+//        } catch (UnsupportedLookAndFeelException e) {
+//            e.printStackTrace();
+//        } catch (Exception ex) {
+////            Logger.getLogger(TEMAcquisitionProMain.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+
+
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
