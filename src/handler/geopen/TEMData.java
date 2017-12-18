@@ -402,7 +402,7 @@ public class TEMData {
         byte[] buffer;
         int pos = -1;
         String suf = files[0].getName().split("[.]")[1];//区分 tm 和 ctm扩展名
-        String path = makeFileDir(new File("data"));
+        String path = makeFileDir(new File("temData"));
 //        System.out.println(files.length);
         for (int i = 0; i < files.length; i++) {
 //            path = makeFileDir(files[i]);//生成文件夹

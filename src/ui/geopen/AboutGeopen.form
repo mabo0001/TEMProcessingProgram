@@ -141,7 +141,7 @@
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel3">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Version_3.0.0.6"/>
+            <Property name="text" type="java.lang.String" value="Version_3.0.0.7"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel4">
