@@ -6,6 +6,7 @@ package handler.geopen;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
@@ -27,7 +28,9 @@ public class TEMIntegrationMethod {
     private ArrayList<Double> turns = new ArrayList<Double>();//匝数
     private ArrayList<Double> widthTime = new ArrayList<Double>();//时间窗口宽度
     private ArrayList<Integer> pointsList = new ArrayList<Integer>();//积分数据点
-
+    //用于设定y轴方向的最大最小值，都一样的坐标范围
+    public static double voltMin = 1000000;
+    public static double voltMax = -1000000;
 
     //迭代寻找非零点
     public double addNoneZero(int j, int max) {
@@ -134,6 +137,15 @@ public class TEMIntegrationMethod {
             timeMid.add(t);
             voltage.add(v);
         }
+        double vmax = Collections.max(voltage);
+        double vmin = Collections.min(voltage);
+        if (voltMin > vmin) {
+            voltMin = vmin;
+        }
+        if (voltMax < vmax) {
+            voltMax = vmax;
+        }
+//        System.out.println(voltMax + "+++++++" + voltMin);
         Volt_midT_Current_Area_winT_Points.add(voltage);
         Volt_midT_Current_Area_winT_Points.add(timeMid);//单位为ms
         Volt_midT_Current_Area_winT_Points.add(currents);//增加电流

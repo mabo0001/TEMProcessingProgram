@@ -61,7 +61,7 @@ public class HandlerVolt_TimeCharts implements ChartProgressListener, ChartMouse
     public XYItemEntity xyItemEntity;//获得鼠标点击时的数据点
     private ChartRenderingInfo info = null;
     public JFreeChart chart;
-    private ChartPanel chartPanel;
+    private DefinedChartPanel chartPanel;
     private XYSeriesCollection dataset;//获得当前显示的的数据集合
     private double x = -1;//存储时间点
     private double right_leftDemonMinMax = -1;//区域标记的最大最小值 根据左右截取值不同
@@ -135,7 +135,7 @@ public class HandlerVolt_TimeCharts implements ChartProgressListener, ChartMouse
     public JPanel createDemoPanel(String title, String xLabel, String yLabel, XYDataset dataset) {
         this.dataset = (XYSeriesCollection) dataset;
         JFreeChart chart = createChart(title, xLabel, yLabel, dataset);
-        chartPanel = new ChartPanel(chart);
+        chartPanel = new DefinedChartPanel(chart);
         this.info = chartPanel.getChartRenderingInfo();
         //增加属性
 //        chartPanel.setDomainZoomable(true);
@@ -341,10 +341,10 @@ public class HandlerVolt_TimeCharts implements ChartProgressListener, ChartMouse
             String fileName = win.getCurrentFileName();
             win.getFileName_DeletedPoints().get(fileName).add(tempXYList);
             //需要从显示的数据点中移除
-            ArrayList<Double> tempVolArrayList = win.getTempTimeList().get(fileName);
-            int counts = tempVolArrayList.size();
+            ArrayList<Double> tempTimeArrayList = win.getTempTimeList().get(fileName);
+            int counts = tempTimeArrayList.size();
             for (int i = 0; i < counts; i++) {
-                if (x == (Double) tempVolArrayList.get(i)) {//当删除的点的时间等于集合中的时间时移除
+                if (x == (Double) tempTimeArrayList.get(i)) {//当删除的点的时间等于集合中的时间时移除
                     //添加删除的索引
                     win.getTempTimeList().get(fileName).remove(x);
                     win.getTempVoltageList().get(fileName).remove(y);

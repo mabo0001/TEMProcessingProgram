@@ -570,9 +570,6 @@ public class TEMShowingParaSetDialog extends javax.swing.JDialog implements Prop
 
     public void setPos_Integration(boolean integrationBoolean) {
         //防止series1重复添加 将集合类清零
-//        if (TEMChartPanle.series1.getItemCount() != 0) {
-//            clearSeries();
-//        }
         if (integrationBoolean == true) {
             //如果选择了积分
             if (!chooseTimeWinCheckBox.isSelected()) {
@@ -1024,6 +1021,7 @@ public class TEMShowingParaSetDialog extends javax.swing.JDialog implements Prop
         handelChannelDataWin.pack();
         ShowScope.setLocation(handelChannelDataWin);
         handelChannelDataWin.setVisible(true);
+        frame.setFixedRange(handelChannelDataWin.voltage_timeChartPanel, TEMIntegrationMethod.voltMin, TEMIntegrationMethod.voltMax);
         //获得焦点 为了监听键盘
         handelChannelDataWin.requestFocus();
     }
@@ -1061,9 +1059,8 @@ public class TEMShowingParaSetDialog extends javax.swing.JDialog implements Prop
 
     private void chooseTimeWinCheckBoxStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_chooseTimeWinCheckBoxStateChanged
         // TODO add your handling code here:  chooseTimeWinCheckBoxSelected();
-          chooseTimeWinCheckBoxSelected();
+        chooseTimeWinCheckBoxSelected();
     }//GEN-LAST:event_chooseTimeWinCheckBoxStateChanged
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton cancelButton;
     private javax.swing.JButton cancelButton1;

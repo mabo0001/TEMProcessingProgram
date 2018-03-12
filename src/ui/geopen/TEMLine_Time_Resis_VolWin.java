@@ -310,6 +310,7 @@ public class TEMLine_Time_Resis_VolWin extends javax.swing.JFrame {
 //        } else if (chartChangeNum == 2) {
 //            chartChangeNum = 0;
 //        }
+        
         //更新
         Component[] chartPanels = definedLinePanel.getComponents();
         ArrayList linePoints = new ArrayList();//必须是Arraylist

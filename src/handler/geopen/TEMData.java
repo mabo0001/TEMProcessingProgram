@@ -5,6 +5,8 @@
 package handler.geopen;
 
 import constant.geopen.ConstantPara;
+import static handler.geopen.TEMIntegrationMethod.voltMax;
+import static handler.geopen.TEMIntegrationMethod.voltMin;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -62,6 +64,7 @@ public class TEMData {
         if (TEMData.flagGF == 1) {//ctm 有别于之前老版本；包含电流数据
             customFileFilterFormat.setFileFilter(fileFilter,
                     new customFileFilterFormat(new String[]{".gptm"}, "gptm (*.gptm)"),
+                    new customFileFilterFormat(new String[]{".tm"}, "tm (*.tm)"),
                     new customFileFilterFormat(new String[]{".ctm"}, "ctm (*.ctm)"));
         } else {
             customFileFilterFormat.setFileFilter(fileFilter,
@@ -141,6 +144,7 @@ public class TEMData {
         TEMSourceData.lineName_XYList.clear();
         TEMSourceData.lineName.clear();
         TEMSourceData.temData = null;
+        //清理数组
         //组件清理
         frame.pointsPositionPanel.removeAll();
         if (frame.originalDataPanel.getComponents().length != 0) {
@@ -201,6 +205,11 @@ public class TEMData {
         TEMSourceData.lineName_XYList = (HashMap<String, ArrayList>) ois.readObject();//定义测线 对应的坐标 ArrayList 所选的点的坐标
         TEMSourceData.lineName = (ArrayList<String>) ois.readObject();//测线名
         TEMSourceData.temData = (double[][][]) ois.readObject();//源数据
+        setMinMaxVolt();
+        //更改积分窗口值
+        for (int i = 0; i < TEMSourceData.fundfrequency.length; i++) {
+            changeIntegerWins(i, null);
+        }
 //        TEMSourceData.inversionValue = (HashMap<String, ArrayList>) ois.readObject();//自定义的String_文件名，单点反演数据
         ois.close();
         //创建文件 赋值给tree
@@ -226,6 +235,21 @@ public class TEMData {
         //增加坐标面板
         addTEMChartPanel();
         return files;
+    }
+
+    public void setMinMaxVolt() {
+        int length = TEMSourceData.filesName.length;
+        for (int i = 0; i < length; i++) {
+            ArrayList<ArrayList> Volt_midT_Current_Area_winT_Points = TEMSourceData.integrationValue.get(TEMSourceData.filesName[i]);
+            double vmin = (Double) Collections.min(Volt_midT_Current_Area_winT_Points.get(0));
+            double vmax = (Double) Collections.max(Volt_midT_Current_Area_winT_Points.get(0));
+            if (voltMin > vmin) {
+                voltMin = vmin;
+            }
+            if (voltMax < vmax) {
+                voltMax = vmax;
+            }
+        }
     }
 
     public void addTEMChartPanel() {
@@ -270,6 +294,7 @@ public class TEMData {
         Collections.sort(fileList, new IntegerCompartor());
         files = (File[]) fileList.toArray();
         String path = "";
+        this.files = null;
         if (flagGF == 1) {//连续采集数据 飞行
             path = splitFiles(files);
             this.files = new File(path).listFiles();
@@ -379,8 +404,6 @@ public class TEMData {
         raf.skipBytes(28);//253
         byte[] mode = new byte[8];
         raf.read(mode);
-//        String modeStr = new String(mode);
-//        System.out.println(modeStr);
 
         raf.skipBytes(offset + 512 - (int) raf.getFilePointer());//跳出文件头
         return infor;
@@ -389,6 +412,9 @@ public class TEMData {
     public String makeFileDir(File file) {
         File[] roots = File.listRoots();//获得盘符
         File dir = new File(roots[0].toString().split("[:]")[0] + ":\\" + file.getName().split("[.]")[0]);
+        if (dir.exists()) {
+            deleteFile(roots[0].toString().split("[:]")[0] + ":\\" + file.getName().split("[.]")[0]);
+        }
         dir.mkdir();
         String path = dir.getAbsolutePath();
         return path;
@@ -685,6 +711,7 @@ public class TEMData {
             byte[] gpsTime = new byte[19];//记录时间
             raf.read(gpsTime);
             String gpsTimeStr = new String(gpsTime);
+
             String[] gpsTimeStrs = gpsTimeStr.split(" ");
             String[] gpsTimeDateStrs = gpsTimeStrs[0].split(".");
             TEMSourceData.time[i] = gpsTimeStrs[0].concat("_").concat(gpsTimeStrs[1]);
@@ -739,11 +766,14 @@ public class TEMData {
              6、	CSR+GPS   秒脉冲同步连续采集模式：按采集键，等待一个秒脉冲开始同步采集、内部PWM不输出，文件名取GPS的时间，连续采集存盘，每300个文件合并存储在一个文件中；
              7、	OutSYS  外同步模式:按采集键，等待外部触发信号，收到后，开始同步采集，文件名再开始等待触发前取屏幕RTC的时间；
              */
-            if (TEMSourceData.mode[i].equalsIgnoreCase("CSER_GPS")
-                    || TEMSourceData.mode[i].equalsIgnoreCase("SER")
-                    || TEMSourceData.mode[i].equalsIgnoreCase("CSR_GPS")
-                    || TEMSourceData.mode[i].equalsIgnoreCase("CS_GPS")
-                    || TEMSourceData.mode[i].equalsIgnoreCase("SER_GPS")) {
+//            if (TEMSourceData.mode[i].equalsIgnoreCase("CSER_GPS")
+//                    || TEMSourceData.mode[i].equalsIgnoreCase("SER")
+//                    || TEMSourceData.mode[i].equalsIgnoreCase("CSR_GPS")
+//                    || TEMSourceData.mode[i].equalsIgnoreCase("CS_GPS")
+//                    || TEMSourceData.mode[i].equalsIgnoreCase("SER_GPS")) {
+            if (TEMSourceData.mode[i].toUpperCase().contains("SER")
+                    || TEMSourceData.mode[i].toUpperCase().contains("CSR")
+                    || TEMSourceData.mode[i].toUpperCase().contains("CS")) {
                 try {
                     String gpsInfStr = new String(gpsInf);
                     String[] splitStrs = gpsInfStr.split(",");
@@ -1004,10 +1034,18 @@ public class TEMData {
         return -1;
     }
 
+    /**
+     * 读取文件时更改时间窗口
+     *
+     * @param i
+     * @param xyseries
+     */
     private void changeIntegerWins(int i, XYSeries[] xyseries) {
         if (TEMSourceData.fundfrequency[i] >= 5) {//25Hz 高
-            for (int m = 0; m < TEMSourceData.temData[i].length; m++) {//通道
-                TEMSourceData.temData[i][m] = xyseries[m].toArray()[1];
+            if (xyseries != null) {//只针对处gptm文件以外的采集数据
+                for (int m = 0; m < TEMSourceData.temData[i].length; m++) {//通道
+                    TEMSourceData.temData[i][m] = xyseries[m].toArray()[1];
+                }
             }
             frame.paraDialog.startTSpinner.setValue(0.001);
             if (TEMSourceData.fundfrequency[i] == 5) {

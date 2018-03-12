@@ -4,6 +4,7 @@
  */
 package ui.geopen;
 
+import handler.geopen.TEMIntegrationMethod;
 import handler.geopen.TEMSourceData;
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -379,9 +380,9 @@ public class TEMHandelChannelDataWin extends javax.swing.JFrame {
                 .addComponent(cancelButton, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
-        fiveSmoothPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "数据圆滑", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("宋体", 0, 12), java.awt.Color.blue)); // NOI18N
+        fiveSmoothPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "数据滤波", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("宋体", 0, 12), java.awt.Color.blue)); // NOI18N
 
-        fiveSmoothButton.setText("圆 滑");
+        fiveSmoothButton.setText("滤波");
         fiveSmoothButton.setMaximumSize(new java.awt.Dimension(105, 23));
         fiveSmoothButton.setMinimumSize(new java.awt.Dimension(105, 23));
         fiveSmoothButton.setPreferredSize(new java.awt.Dimension(105, 23));
@@ -530,6 +531,10 @@ public class TEMHandelChannelDataWin extends javax.swing.JFrame {
             recListIndex--;
             String fileName = filesNameList.get(recListIndex);
             xyseriescollection.addSeries(extractVolt_Time(tempVoltageList.get(fileName), tempTimeList.get(fileName)));
+            TEMProcessingProgramWin.setFixedRange(
+                    voltage_timeChartPanel,
+                    TEMIntegrationMethod.voltMin,
+                    TEMIntegrationMethod.voltMax);
             clearAnnotation_Markers(fileName);
             if (fileName_TimeBoundary.get(fileName).doubleValue() == -1D) {
                 //清除所有标记
@@ -1363,6 +1368,28 @@ public class TEMHandelChannelDataWin extends javax.swing.JFrame {
         //            clearAnnotation_Markers();
         //        }
     }//GEN-LAST:event_allFilesUnitCheckBox1ActionPerformed
+    /**
+     * 当电压和时间数目不对应时取小 在TEMHandelChannelDataWin。java 有同样方法
+     *
+     * @param voltage
+     * @param timeMid
+     */
+    public void updateVolTim(ArrayList voltage, ArrayList timeMid) {
+        int counts = voltage.size();
+        int counts1 = timeMid.size();
+        int interval = Math.abs(counts1 - counts);
+        if (counts1 - counts < 0) {
+            counts = voltage.size();
+            for (int i = 0; i < interval; i++) {
+                voltage.remove(counts - 1 - i);
+            }
+        } else if (counts1 - counts > 0) {
+            counts = timeMid.size();
+            for (int i = 0; i < interval; i++) {
+                timeMid.remove(counts - 1 - i);
+            }
+        }
+    }
 
     /**
      * 建立时间电压数据组
@@ -1372,6 +1399,7 @@ public class TEMHandelChannelDataWin extends javax.swing.JFrame {
      * @return
      */
     public XYSeries extractVolt_Time(ArrayList voltage, ArrayList timeMid) {
+        updateVolTim(voltage, timeMid);
         int counts = voltage.size();
         XYSeries volt_time = new XYSeries("时间/电压");
         for (int i = 0; i < counts; i++) {

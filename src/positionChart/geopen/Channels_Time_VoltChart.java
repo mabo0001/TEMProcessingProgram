@@ -7,6 +7,7 @@ package positionChart.geopen;
 import colorBar.geopen.Gradient;
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;

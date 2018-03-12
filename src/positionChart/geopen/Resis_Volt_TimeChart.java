@@ -8,8 +8,8 @@ import java.awt.Color;
 import java.awt.Font;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.LogAxis;
 import org.jfree.chart.axis.LogarithmicAxis;
+import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.labels.StandardXYToolTipGenerator;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
@@ -84,7 +84,7 @@ public class Resis_Volt_TimeChart {
             LogarithmicAxis yAxis = new LogarithmicAxis(yLabel);
 //            LogAxis xAxis = new LogAxis(xLabel);
 //            LogAxis yAxis = new LogAxis(yLabel);
-            yAxis.setAutoRangeMinimumSize(1E-20);//自定义最小值 最小的设定
+//            yAxis.setAutoRangeMinimumSize(1E-20);//自定义最小值 最小的设定
 //        yAxis.setBase(100);
 //        LogFormat format = new LogFormat(yAxis.getBase(), "111", "222", true);//自定义坐标轴的显示
 //        yAxis.setNumberFormatOverride(format);

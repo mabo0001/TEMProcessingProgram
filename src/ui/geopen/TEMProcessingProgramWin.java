@@ -7,6 +7,7 @@ package ui.geopen;
 import handler.geopen.TEMData;
 import handler.geopen.TEMGeoPenFileFilter;
 import handler.geopen.TEMImageFileFilter;
+import handler.geopen.TEMIntegrationMethod;
 import handler.geopen.TEMSetTableRowColor;
 import handler.geopen.TEMSourceData;
 import handler.geopen.TEMUSFFileFilter;
@@ -14,6 +15,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.Panel;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -62,10 +64,16 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
+import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.LogarithmicAxis;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.labels.XYSeriesLabelGenerator;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.data.Range;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
+import positionChart.geopen.DefinedChartPanel;
 import positionChart.geopen.InstallData;
 import positionChart.geopen.OriginalDataChart;
 
@@ -87,6 +95,10 @@ public class TEMProcessingProgramWin extends JFrame {
     public static int flagPointOrLine = 0;//true代表点选 false线选 0代表什么都不选 1代表线选 2代表点选
     //参数设置对话框
     public TEMShowingParaSetDialog paraDialog;
+    public static double xMin = 0;
+    public static double xMax = 0;
+    public static double yMin = 0;
+    public static double yMax = 0;
 
     /**
      * Creates new form TEMProcessingProgramWin
@@ -237,6 +249,29 @@ public class TEMProcessingProgramWin extends JFrame {
     }
 
     /**
+     * 当电压和时间数目不对应时取小 在TEMHandelChannelDataWin。java 有同样方法
+     *
+     * @param voltage
+     * @param timeMid
+     */
+    public void updateVolTim(ArrayList voltage, ArrayList timeMid) {
+        int counts = voltage.size();
+        int counts1 = timeMid.size();
+        int interval = Math.abs(counts1 - counts);
+        if (counts1 - counts < 0) {
+            counts = voltage.size();
+            for (int i = 0; i < interval; i++) {
+                voltage.remove(counts - 1 - i);
+            }
+        } else if (counts1 - counts > 0) {
+            counts = timeMid.size();
+            for (int i = 0; i < interval; i++) {
+                timeMid.remove(counts - 1 - i);
+            }
+        }
+    }
+
+    /**
      * 显示测线数据
      *
      * @param lineName
@@ -262,6 +297,7 @@ public class TEMProcessingProgramWin extends JFrame {
                             if (i == 0) {//以积分完的电压值点数为准
                                 maxTimePoints = ((ArrayList) voltage_time.get(1)).size();
                             }
+                            updateVolTim((ArrayList) voltage_time.get(0), (ArrayList) voltage_time.get(1));
 //                            else if (maxTimePoints < ((ArrayList) voltage_time.get(1)).size()) {
 //                                maxTimePoints = ((ArrayList) voltage_time.get(1)).size();
 //                            }
@@ -277,9 +313,23 @@ public class TEMProcessingProgramWin extends JFrame {
                             XYSeriesCollection xyseriescollection = new XYSeriesCollection();
                             TEMTime_Resis_VoltWin time_resis_rolt = new TEMTime_Resis_VoltWin(xyseriescollection);
                             //添加电阻率时间 默认显示
-                            xyseriescollection.addSeries(time_resis_rolt.extractResis_Time((ArrayList) voltage_time.get(0), (ArrayList) voltage_time.get(1),
-                                    (ArrayList) voltage_time.get(2), (ArrayList) voltage_time.get(3), (ArrayList) voltage_time.get(4), (ArrayList) voltage_time.get(5), (ArrayList) voltage_time.get(6)));
-                            lineWin.definedLinePanel.add(time_resis_rolt.createDemoPanel(fileName, "Time( ms )", "Resistivity( ohm.m )", "RT", xyseriescollection, true));
+//                            xyseriescollection.addSeries(time_resis_rolt.extractVolt_Time(
+//                                    (ArrayList) voltage_time.get(0),
+//                                    (ArrayList) voltage_time.get(1)));
+//                            lineWin.definedLinePanel.add(time_resis_rolt.createDemoPanel(fileName, "Time( ms )", "Voltage( mV/AM2 )", "RT", xyseriescollection, true));
+                            xyseriescollection.addSeries(time_resis_rolt.extractResis_Time(
+                                    (ArrayList) voltage_time.get(0),
+                                    (ArrayList) voltage_time.get(1),
+                                    (ArrayList) voltage_time.get(2),
+                                    (ArrayList) voltage_time.get(3),
+                                    (ArrayList) voltage_time.get(4),
+                                    (ArrayList) voltage_time.get(5),
+                                    (ArrayList) voltage_time.get(6)));
+                            DefinedChartPanel chartPanel = time_resis_rolt.createDemoPanel(fileName, "Time( ms )", "Resistivity( ohm.m )", "RT", xyseriescollection, true);
+                            lineWin.definedLinePanel.add(chartPanel);
+                            //鼠标范围显示冻结
+                            chartPanel.setZoomTriggerDistance(100000);
+                            chartPanel.setMouseZoomable(false);
                         }
                         //添加时间电压抽道曲线
                         DecimalFormat foramt = new DecimalFormat("0.000");
@@ -429,6 +479,7 @@ public class TEMProcessingProgramWin extends JFrame {
             TEMTime_Resis_VoltWin time_resis_rolt = new TEMTime_Resis_VoltWin(null);
             ArrayList voltage_time = TEMSourceData.integrationValue.get(fileName);
             time_resis_rolt.xyseriescollection0.addSeries(time_resis_rolt.extractVolt_Time((ArrayList) voltage_time.get(0), (ArrayList) voltage_time.get(1)));
+            TEMProcessingProgramWin.setFixedRange(time_resis_rolt.volt_timePanel, TEMIntegrationMethod.voltMin, TEMIntegrationMethod.voltMax);
             time_resis_rolt.resis_vol_timeSplitPane.getBottomComponent().setVisible(false);//没有反演之前不可见
             time_resis_rolt.resis_depthSplitPane.getRightComponent().setVisible(false);
             time_resis_rolt.resis_vol_timeSplitPane.setOneTouchExpandable(false);//设定不可divide
@@ -931,6 +982,7 @@ public class TEMProcessingProgramWin extends JFrame {
         //打开文件
         fileOpen();
     }//GEN-LAST:event_fileOpenButtActionPerformed
+
     public void updateTree() {
         if (temData.files != null) {//当选择了文件时
             //更新树列表
@@ -1228,6 +1280,7 @@ public class TEMProcessingProgramWin extends JFrame {
         //通道数据
         if (dataVisualTabbedPane.getSelectedIndex() == 0 && originalDataPanel.getComponents().length != 0) {
             dataVisualTabbedPane.remove(1);
+            originalDataPanel.removeAll();
         }
     }//GEN-LAST:event_dataVisualTabbedPaneStateChanged
 
@@ -1256,6 +1309,17 @@ public class TEMProcessingProgramWin extends JFrame {
                 int countsJ = TEMSourceData.temData[i].length;
                 int countsM = TEMSourceData.temData[i][0].length;
                 OriginalDataChart odc = new OriginalDataChart(TEMSourceData.filesName[i], countsJ);
+                XYSeriesCollection collection = new XYSeriesCollection();
+                if (countsJ == 1) {
+                    collection.addSeries(odc.xyseries1);
+                } else if (countsJ == 2) {
+                    collection.addSeries(odc.xyseries1);
+                    collection.addSeries(odc.xyseries2);
+                } else if (countsJ == 3) {
+                    collection.addSeries(odc.xyseries1);
+                    collection.addSeries(odc.xyseries2);
+                    collection.addSeries(odc.xyseries3);
+                }
                 for (int m = 0; m < countsM; m++) {
                     double time = sampletRate * (m + 1) * 1000;
                     if (countsJ == 1) {
@@ -1271,8 +1335,103 @@ public class TEMProcessingProgramWin extends JFrame {
                     }
 
                 }
-                originalDataPanel.add(odc.createDemoPanel());
+//                originalDataPanel.add(odc.createDemoPanel());
+                if (i == 0) {
+                    if (countsJ == 1) {
+//                        xMin = odc.xyseries1.getMinX();
+//                        xMax = odc.xyseries1.getMaxX();
+                        yMin = odc.xyseries1.getMinY();
+                        yMax = odc.xyseries1.getMaxY();
+                    } else if (countsJ == 2) {
+//                        xMin = Math.min(odc.xyseries1.getMinX(), odc.xyseries2.getMinX());
+//                        xMax = Math.max(odc.xyseries1.getMaxX(), odc.xyseries2.getMaxX());
+                        yMin = Math.min(odc.xyseries1.getMinY(), odc.xyseries2.getMinY());
+                        yMax = Math.max(odc.xyseries1.getMaxY(), odc.xyseries2.getMaxY());
+                    } else if (countsJ == 3) {
+//                        xMin = Math.min(Math.min(odc.xyseries1.getMinX(), odc.xyseries2.getMinX()), odc.xyseries3.getMinX());
+//                        xMax = Math.max(Math.max(odc.xyseries1.getMaxX(), odc.xyseries2.getMaxX()), odc.xyseries3.getMaxX());
+                        yMin = Math.min(Math.min(odc.xyseries1.getMinY(), odc.xyseries2.getMinY()), odc.xyseries3.getMinY());
+                        yMax = Math.max(Math.max(odc.xyseries1.getMaxY(), odc.xyseries2.getMaxY()), odc.xyseries3.getMaxY());
+                    }
+                } else {
+                    if (countsJ == 1) {
+//                        double xMin = odc.xyseries1.getMinX();
+//                        double xMax = odc.xyseries1.getMaxX();
+                        double yMin = odc.xyseries1.getMinY();
+                        double yMax = odc.xyseries1.getMaxY();
+                        setMaxMin(yMin, yMax);
+                    } else if (countsJ == 2) {
+//                        double xMin = Math.min(odc.xyseries1.getMinX(), odc.xyseries2.getMinX());
+//                        double xMax = Math.max(odc.xyseries1.getMaxX(), odc.xyseries2.getMaxX());
+                        double yMin = Math.min(odc.xyseries1.getMinY(), odc.xyseries2.getMinY());
+                        double yMax = Math.max(odc.xyseries1.getMaxY(), odc.xyseries2.getMaxY());
+                        setMaxMin(yMin, yMax);
+                    } else if (countsJ == 3) {
+//                        double xMin = Math.min(Math.min(odc.xyseries1.getMinX(), odc.xyseries2.getMinX()), odc.xyseries3.getMinX());
+//                        double xMax = Math.max(Math.max(odc.xyseries1.getMaxX(), odc.xyseries2.getMaxX()), odc.xyseries3.getMaxX());
+                        double yMin = Math.min(Math.min(odc.xyseries1.getMinY(), odc.xyseries2.getMinY()), odc.xyseries3.getMinY());
+                        double yMax = Math.max(Math.max(odc.xyseries1.getMaxY(), odc.xyseries2.getMaxY()), odc.xyseries3.getMaxY());
+                        setMaxMin(yMin, yMax);
+                    }
+                }
+                originalDataPanel.add(odc.createDemoPanel(TEMSourceData.filesName[i], "Time(ms)", "Vlotage(mv)", new Dimension(50, 50), collection));
             }
+            setFixedRange(originalDataPanel, yMin, yMax);
+        }
+    }
+
+    public void setMaxMin(double yMin, double yMax) {
+//        if (xMin < this.xMin) {
+//            this.xMin = xMin;
+//        }
+//        if (this.xMax < xMax) {
+//            this.xMax = xMax;
+//        }
+        if (yMin < this.yMin) {
+            this.yMin = yMin;
+        }
+        if (this.yMax < yMax) {
+            this.yMax = yMax;
+        }
+    }
+
+    public static void setFixedRange(JPanel panel, double min, double max) {
+        Component[] c = panel.getComponents();
+        for (int i = 0; i < c.length; i++) {
+            DefinedChartPanel chartPanel = (DefinedChartPanel) c[i];
+            chartPanel.setyMin(min);
+            chartPanel.setyMax(max);
+            setAxisRange(chartPanel, min, max);
+        }
+    }
+
+    public static void setAllZoom(JPanel panel, double zoomX1, double zoomY1, double zoomX2, double zoomY2) {
+        Component[] c = panel.getComponents();
+        for (int i = 0; i < c.length; i++) {
+            DefinedChartPanel chartPanel = (DefinedChartPanel) c[i];
+            JFreeChart jfreechart = chartPanel.getChart();
+            XYPlot xyplot = (XYPlot) jfreechart.getPlot();
+            NumberAxis numberaxisX = (NumberAxis) xyplot.getDomainAxis();
+            NumberAxis numberaxisY = (NumberAxis) xyplot.getRangeAxis();
+
+            numberaxisX.setLowerBound(zoomX1);
+            numberaxisX.setUpperBound(zoomY1);
+            numberaxisY.setLowerBound(zoomX2);
+            numberaxisY.setUpperBound(zoomY2);
+//            setAxisRange(chartPanel, zoomX, zoomY);
+        }
+    }
+
+    public static void setAxisRange(DefinedChartPanel chartPanel, double min, double max) {
+        JFreeChart jfreechart = chartPanel.getChart();
+        XYPlot xyplot = (XYPlot) jfreechart.getPlot();
+        NumberAxis numberaxisY = (NumberAxis) xyplot.getRangeAxis();
+        double interval = (max - min) * 0.1;
+        numberaxisY.setUpperBound(max + interval);
+        if (xyplot.getRangeAxis() instanceof LogarithmicAxis) {
+            numberaxisY.setLowerBound(min - min * .1);
+        } else {
+            numberaxisY.setLowerBound(min - interval);
         }
     }
     private void originalDataMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_originalDataMenuItemActionPerformed
@@ -1331,7 +1490,6 @@ public class TEMProcessingProgramWin extends JFrame {
     private void flyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_flyButtonActionPerformed
         // TODO add your handling code here:
         TEMData.flagGF = 1;
-
         GroundOrAirDia.setVisible(false);
     }//GEN-LAST:event_flyButtonActionPerformed
 
@@ -2181,7 +2339,7 @@ public class TEMProcessingProgramWin extends JFrame {
     private javax.swing.JMenuItem openFileMenuItem;
     private javax.swing.JButton originalDataButton;
     private javax.swing.JMenuItem originalDataMenuItem;
-    public javax.swing.JPanel originalDataPanel;
+    public static javax.swing.JPanel originalDataPanel;
     public javax.swing.JScrollPane originalScrollPane;
     private javax.swing.JButton pointsParasButton;
     private javax.swing.JMenuItem pointsParasMenuItem;

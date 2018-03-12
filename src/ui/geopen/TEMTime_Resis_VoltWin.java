@@ -5,6 +5,7 @@
 package ui.geopen;
 
 import handler.geopen.TEMImageFileFilter;
+import handler.geopen.TEMIntegrationMethod;
 import handler.geopen.TEMResisAndDepth;
 import handler.geopen.TEMSourceData;
 import java.awt.Dimension;
@@ -20,10 +21,16 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.data.Range;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
+import positionChart.geopen.DefinedChartPanel;
 import positionChart.geopen.Resis_Volt_TimeChart;
+import static ui.geopen.TEMProcessingProgramWin.yMax;
+import static ui.geopen.TEMProcessingProgramWin.yMin;
 
 /**
  *
@@ -59,9 +66,10 @@ public class TEMTime_Resis_VoltWin extends javax.swing.JFrame {
      * @param flagLineOrSingle//标记是单个点显示还是测线显示
      * @return \
      */
-    public ChartPanel createDemoPanel(String title, String xLabel, String yLabel, String chartVersion, XYDataset dataset, boolean flagLineOrSingle) {
+    public DefinedChartPanel createDemoPanel(
+            String title, String xLabel, String yLabel, String chartVersion, XYDataset dataset, boolean flagLineOrSingle) {
         JFreeChart chart = resis_volt_timeChart.createChart(title, xLabel, yLabel, chartVersion, dataset, flagLineOrSingle);
-        ChartPanel chartPanel = new ChartPanel(chart);
+        DefinedChartPanel chartPanel = new DefinedChartPanel(chart);
         //增加属性
         chartPanel.setDomainZoomable(true);
         chartPanel.setRangeZoomable(true);
@@ -77,6 +85,29 @@ public class TEMTime_Resis_VoltWin extends javax.swing.JFrame {
     }
 
     /**
+     * 当电压和时间数目不对应时取小 在TEMHandelChannelDataWin。java 有同样方法
+     *
+     * @param voltage
+     * @param timeMid
+     */
+    public void updateVolTim(ArrayList voltage, ArrayList timeMid) {
+        int counts = voltage.size();
+        int counts1 = timeMid.size();
+        int interval = Math.abs(counts1 - counts);
+        if (counts1 - counts < 0) {
+            counts = voltage.size();
+            for (int i = 0; i < interval; i++) {
+                voltage.remove(counts - 1 - i);
+            }
+        } else if (counts1 - counts > 0) {
+            counts = timeMid.size();
+            for (int i = 0; i < interval; i++) {
+                timeMid.remove(counts - 1 - i);
+            }
+        }
+    }
+
+    /**
      * 建立时间电压数据组
      *
      * @param voltage
@@ -84,11 +115,15 @@ public class TEMTime_Resis_VoltWin extends javax.swing.JFrame {
      * @return
      */
     public XYSeries extractVolt_Time(ArrayList voltage, ArrayList timeMid) {
-        int counts = voltage.size();
+//        System.out.println(voltage.size() + "," + timeMid.size());
+        updateVolTim(voltage, timeMid);
+        //同步更新完全一一致
         XYSeries volt_time = new XYSeries("时间/电压");
+        int counts = voltage.size();
+        //更新数据
         for (int i = 0; i < counts; i++) {
-            double timeM = (Double) timeMid.get(i);
             double vol = (Double) voltage.get(i);
+            double timeM = (Double) timeMid.get(i);
             volt_time.add(timeM, vol);
 //            System.out.println(timeM + "," + vol);
         }
@@ -462,6 +497,7 @@ public class TEMTime_Resis_VoltWin extends javax.swing.JFrame {
         ArrayList voltage_time = TEMSourceData.integrationValue.get(fileName);
         //电压时间曲线
         xyseriescollection0.addSeries(extractVolt_Time((ArrayList) voltage_time.get(0), (ArrayList) voltage_time.get(1)));
+        TEMProcessingProgramWin.setFixedRange(volt_timePanel, TEMIntegrationMethod.voltMin, TEMIntegrationMethod.voltMax);
         //电阻率时间曲线
         xyseriescollection1.addSeries(extractResis_Time((ArrayList) voltage_time.get(0), (ArrayList) voltage_time.get(1),
                 (ArrayList) voltage_time.get(2), (ArrayList) voltage_time.get(3), (ArrayList) voltage_time.get(4), (ArrayList) voltage_time.get(5), (ArrayList) voltage_time.get(6)));
@@ -531,6 +567,7 @@ public class TEMTime_Resis_VoltWin extends javax.swing.JFrame {
             TEMProcessingProgramWin.fileName = fileName;
             inversion(fileName);
             setTitle(fileName);
+
         }
     }//GEN-LAST:event_lastButtonActionPerformed
 
@@ -547,7 +584,21 @@ public class TEMTime_Resis_VoltWin extends javax.swing.JFrame {
             setTitle(fileName);
         }
     }//GEN-LAST:event_nextButtonActionPerformed
-
+    /**
+     * 设定左边范围
+     */
+    public void upDateRange() {
+        ChartPanel cp = (ChartPanel) volt_timePanel.getComponent(0);
+//              System.out.println(time_resis_rolt.volt_timePanel.getComponentCount() + "+++++++");
+        JFreeChart jfreechart = cp.getChart();
+        XYPlot xyplot = (XYPlot) jfreechart.getPlot();
+        NumberAxis numberaxisY = (NumberAxis) xyplot.getRangeAxis();
+        numberaxisY.setLowerBound(TEMIntegrationMethod.voltMin - TEMIntegrationMethod.voltMin * 0.5);
+        numberaxisY.setUpperBound(TEMIntegrationMethod.voltMax + TEMIntegrationMethod.voltMax * 0.1);
+//            numberaxisY.setDefaultAutoRange(new Range(TEMIntegrationMethod.voltMin - TEMIntegrationMethod.voltMin * 0.5, TEMIntegrationMethod.voltMax + TEMIntegrationMethod.voltMax * 0.1));
+        numberaxisY.setDefaultAutoRange(new Range(TEMIntegrationMethod.voltMin - TEMIntegrationMethod.voltMin * 0.5, TEMIntegrationMethod.voltMax + TEMIntegrationMethod.voltMax * 0.1));
+        System.out.println(TEMIntegrationMethod.voltMin + "+++++++");
+    }
     private void savePicMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_savePicMenuItemActionPerformed
         // TODO add your handling code here:
         savePicButtonActionPerformed(evt);
