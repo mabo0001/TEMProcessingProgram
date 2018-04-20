@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -107,21 +108,35 @@ public class TEMChartPanle extends JPanel implements ChartProgressListener, Char
 
         Font font = new Font("宋体", Font.PLAIN, 12);
         JPopupMenu menu = new JPopupMenu();
+        final ButtonGroup buttonGroup = new ButtonGroup();
         final JCheckBoxMenuItem LineChoiceItem = new JCheckBoxMenuItem(" 线选择");
-        LineChoiceItem.setIcon(new javax.swing.ImageIcon(getClass().getResource("/pic/geopen/line.png"))); // NOI18N
+//        LineChoiceItem.setIcon(new javax.swing.ImageIcon(getClass().getResource("/pic/geopen/line.png"))); // NOI18N
         final JCheckBoxMenuItem pointChoiceItem = new JCheckBoxMenuItem(" 点选择");
-        pointChoiceItem.setIcon(new javax.swing.ImageIcon(getClass().getResource("/pic/geopen/point.png"))); // NOI18N
+//        pointChoiceItem.setIcon(new javax.swing.ImageIcon(getClass().getResource("/pic/geopen/point.png"))); // NOI18N
+        final JCheckBoxMenuItem squareChoiceItem = new JCheckBoxMenuItem(" 框选择");
+        final JCheckBoxMenuItem polygonChoiceItem = new JCheckBoxMenuItem(" 任意选择");
+
         JMenuItem deleteItem = new JMenuItem(" 删除测点");
         deleteItem.setIcon(new javax.swing.ImageIcon(getClass().getResource("/pic/geopen/delete16.png"))); // NOI18N
         JMenuItem okItem = new JMenuItem(" 确  定");
         okItem.setIcon(new javax.swing.ImageIcon(getClass().getResource("/pic/geopen/ok16.png"))); // NOI18N
         JMenuItem cancelItem = new JMenuItem(" 取  消");
         cancelItem.setIcon(new javax.swing.ImageIcon(getClass().getResource("/pic/geopen/cancel16.png"))); // NOI18N
-        pointChoiceItem.setFont(font);
-        LineChoiceItem.setFont(font);
-        okItem.setFont(font);
-        cancelItem.setFont(font);
+//        pointChoiceItem.setFont(font);
+//        LineChoiceItem.setFont(font);
+//        okItem.setFont(font);
+//        cancelItem.setFont(font);
         //添加响应
+        squareChoiceItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            }
+        });
+        polygonChoiceItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            }
+        });
         pointChoiceItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -137,7 +152,7 @@ public class TEMChartPanle extends JPanel implements ChartProgressListener, Char
                     xyplot.setRangeCrosshairValue(0);
                     xyplot.clearAnnotations();
                     TEMProcessingProgramWin.flagPointOrLine = 2;
-                    LineChoiceItem.setSelected(false);
+//                    LineChoiceItem.setSelected(false);
                 } else {
                     cancleAction();
                 }
@@ -158,7 +173,7 @@ public class TEMChartPanle extends JPanel implements ChartProgressListener, Char
                     xyplot.setRangeCrosshairValue(0);
                     xyplot.clearAnnotations();
                     TEMProcessingProgramWin.flagPointOrLine = 1;
-                    pointChoiceItem.setSelected(false);
+//                    pointChoiceItem.setSelected(false);
                 } else {
                     cancleAction();
                 }
@@ -204,12 +219,18 @@ public class TEMChartPanle extends JPanel implements ChartProgressListener, Char
             @Override
             public void actionPerformed(ActionEvent e) {
                 cancleAction();
-                pointChoiceItem.setSelected(false);
-                LineChoiceItem.setSelected(false);
+                buttonGroup.clearSelection();
             }
         });
+        buttonGroup.add(LineChoiceItem);
+        buttonGroup.add(pointChoiceItem);
+        buttonGroup.add(squareChoiceItem);
+        buttonGroup.add(polygonChoiceItem);
+
         menu.add(LineChoiceItem);
         menu.add(pointChoiceItem);
+        menu.add(squareChoiceItem);
+        menu.add(polygonChoiceItem);
         menu.addSeparator();
         menu.add(deleteItem);
         menu.addSeparator();

@@ -15,7 +15,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
-import java.awt.Panel;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -68,9 +67,7 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.LogarithmicAxis;
 import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.labels.XYSeriesLabelGenerator;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.data.Range;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import positionChart.geopen.DefinedChartPanel;
@@ -99,6 +96,15 @@ public class TEMProcessingProgramWin extends JFrame {
     public static double xMax = 0;
     public static double yMin = 0;
     public static double yMax = 0;
+    public static double yMinZ = 0;
+    public static double yMaxZ = 0;
+    public static double xMinZ = 0;
+    public static double xMaxZ = 0;
+    //设定显示
+    private int countsInterval = 4;
+    private int minV = 1;
+    private int maxV = 4;
+    private int valueNow = 0;
 
     /**
      * Creates new form TEMProcessingProgramWin
@@ -106,15 +112,9 @@ public class TEMProcessingProgramWin extends JFrame {
     public TEMProcessingProgramWin() {
 
         initComponents();
-        dataVisualTabbedPane.remove(1);
         paraDialog = new TEMShowingParaSetDialog(this, true);
         //进度条不可见
         waitingLineProgressBar.setVisible(false);
-        originalScrollPane.getVerticalScrollBar().setUnitIncrement(50);
-        //坐标显示
-//        TEMSourceData.Array = new Object[1];
-//        TEMSourceData.Array[0] = "中心回线";
-//        TEMChart_Panel = new TEMChartPanle(this, TEMSourceData.Array[0].toString());
         //定义几个初始节点默认
         root.add(pointNode);
         root.add(lineNode);
@@ -285,7 +285,7 @@ public class TEMProcessingProgramWin extends JFrame {
             public void run() {
                 if (TEMSourceData.integrationValue.size() != 0) {//只有存在积分数据 才能弹出
                     try {
-                        final TEMLine_Time_Resis_VolWin lineWin = new TEMLine_Time_Resis_VolWin(TEMProcessingProgramWin.this);//创建视窗
+                        TEMLine_Time_Resis_VolWin lineWin = new TEMLine_Time_Resis_VolWin(TEMProcessingProgramWin.this);//创建视窗
                         HashSet<Double> allTimePoints = new HashSet();//所有时间点 用于抽道时间确定
                         ArrayList linePoints = new ArrayList();//必须是Arraylist
                         linePoints = (ArrayList) TEMSourceData.lineName_XYList.get(lineName);
@@ -535,7 +535,7 @@ public class TEMProcessingProgramWin extends JFrame {
         deleteNodePopupMenu = new javax.swing.JPopupMenu();
         deleteNodeMenuItem = new javax.swing.JMenuItem();
         saveUSFMenuItem = new javax.swing.JMenuItem();
-        GroundOrAirDia = new javax.swing.JDialog();
+        GroundOrAirDia = new javax.swing.JDialog(this);
         groundButton = new javax.swing.JButton();
         flyButton = new javax.swing.JButton();
         ToolBar = new javax.swing.JToolBar();
@@ -558,13 +558,17 @@ public class TEMProcessingProgramWin extends JFrame {
         HandlerSplitPane1 = new javax.swing.JSplitPane();
         dataVisualTabbedPane = new javax.swing.JTabbedPane();
         pointsPositionPanel = new javax.swing.JPanel();
-        originalScrollPane = new javax.swing.JScrollPane();
-        originalDataPanel = new javax.swing.JPanel();
+        testPanel = new javax.swing.JPanel();
+        testPanelScrollBar = new javax.swing.JScrollBar();
+        jPanel1 = new javax.swing.JPanel();
+        addButton = new javax.swing.JButton();
+        minusButton = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         SelectedDataTree = new javax.swing.JTree();
         totalFilesLabel = new javax.swing.JLabel();
         fileNameLabel = new javax.swing.JLabel();
         posLabel = new javax.swing.JLabel();
+        countLabel = new javax.swing.JLabel();
         MenuBar = new javax.swing.JMenuBar();
         fileMenuItem = new javax.swing.JMenu();
         openFileMenuItem = new javax.swing.JMenuItem();
@@ -649,7 +653,7 @@ public class TEMProcessingProgramWin extends JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle("GeoPen－TEM瞬变电磁处理软件");
         setIconImage(Toolkit.getDefaultToolkit().createImage(ClassLoader.getSystemResource("pic/geopen/GP.png")));
-        setMinimumSize(new java.awt.Dimension(562, 301));
+        setMinimumSize(new java.awt.Dimension(600, 301));
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
                 formWindowClosing(evt);
@@ -803,11 +807,72 @@ public class TEMProcessingProgramWin extends JFrame {
         pointsPositionPanel.setLayout(new java.awt.GridLayout(1, 0));
         dataVisualTabbedPane.addTab("TEM布置图", pointsPositionPanel);
 
-        originalDataPanel.setBackground(new java.awt.Color(255, 255, 255));
-        originalDataPanel.setLayout(new java.awt.GridLayout(0, 1));
-        originalScrollPane.setViewportView(originalDataPanel);
+        testPanel.setBackground(new java.awt.Color(255, 255, 255));
 
-        dataVisualTabbedPane.addTab("源数据显示", originalScrollPane);
+        testPanelScrollBar.addAdjustmentListener(new java.awt.event.AdjustmentListener() {
+            public void adjustmentValueChanged(java.awt.event.AdjustmentEvent evt) {
+                testPanelScrollBarAdjustmentValueChanged(evt);
+            }
+        });
+
+        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
+        jPanel1.addMouseWheelListener(new java.awt.event.MouseWheelListener() {
+            public void mouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
+                jPanel1MouseWheelMoved(evt);
+            }
+        });
+        jPanel1.setLayout(new java.awt.GridLayout(0, 1));
+
+        addButton.setText("+");
+        addButton.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        addButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mousePressed(java.awt.event.MouseEvent evt) {
+                addButtonMousePressed(evt);
+            }
+            public void mouseReleased(java.awt.event.MouseEvent evt) {
+                addButtonMouseReleased(evt);
+            }
+        });
+        addButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addButtonActionPerformed(evt);
+            }
+        });
+
+        minusButton.setText("-");
+        minusButton.setIconTextGap(0);
+        minusButton.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        minusButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                minusButtonActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout testPanelLayout = new javax.swing.GroupLayout(testPanel);
+        testPanel.setLayout(testPanelLayout);
+        testPanelLayout.setHorizontalGroup(
+            testPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, testPanelLayout.createSequentialGroup()
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 396, Short.MAX_VALUE)
+                .addGroup(testPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(testPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addComponent(addButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 23, Short.MAX_VALUE)
+                        .addComponent(minusButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(testPanelScrollBar, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(0, 0, 0))
+        );
+        testPanelLayout.setVerticalGroup(
+            testPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(testPanelLayout.createSequentialGroup()
+                .addComponent(addButton)
+                .addGap(0, 0, 0)
+                .addComponent(minusButton)
+                .addGap(0, 0, 0)
+                .addComponent(testPanelScrollBar, javax.swing.GroupLayout.DEFAULT_SIZE, 173, Short.MAX_VALUE))
+        );
+
+        dataVisualTabbedPane.addTab("源数据显示", testPanel);
 
         HandlerSplitPane1.setRightComponent(dataVisualTabbedPane);
 
@@ -829,6 +894,10 @@ public class TEMProcessingProgramWin extends JFrame {
         posLabel.setFont(new java.awt.Font("新宋体", 0, 12)); // NOI18N
         posLabel.setText("数据点坐标：");
         posLabel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, " ", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.BELOW_BOTTOM, new java.awt.Font("宋体", 0, 1))); // NOI18N
+
+        countLabel.setFont(new java.awt.Font("新宋体", 0, 12)); // NOI18N
+        countLabel.setText("显示数：");
+        countLabel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, " ", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.BELOW_BOTTOM, new java.awt.Font("宋体", 0, 1))); // NOI18N
 
         fileMenuItem.setMnemonic(KeyEvent.VK_F);
         fileMenuItem.setText("文件(F)");
@@ -949,25 +1018,29 @@ public class TEMProcessingProgramWin extends JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(ToolBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(HandlerPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(HandlerPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 642, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(totalFilesLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 331, Short.MAX_VALUE)
+                .addComponent(totalFilesLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
-                .addComponent(fileNameLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 333, Short.MAX_VALUE)
+                .addComponent(fileNameLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 120, Short.MAX_VALUE)
                 .addGap(0, 0, 0)
-                .addComponent(posLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 333, Short.MAX_VALUE))
+                .addComponent(posLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 314, Short.MAX_VALUE)
+                .addGap(0, 0, 0)
+                .addComponent(countLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(ToolBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
-                .addComponent(HandlerPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 391, Short.MAX_VALUE)
+                .addComponent(HandlerPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 245, Short.MAX_VALUE)
                 .addGap(0, 0, 0)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(totalFilesLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(fileNameLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(posLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(posLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(countLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(0, 0, 0))
         );
 
         pack();
@@ -977,10 +1050,14 @@ public class TEMProcessingProgramWin extends JFrame {
         // TODO add your handling code here:
 //        JOptionPane.showConfirmDialog(this, "弹出！！！");
         //选择 飞行模式还是地面模式
+        TEMData.flagGF = -1;
         GroundOrAirDia.pack();
+        GroundOrAirDia.setLocation(TEMProcessingProgramWin.this.getX(), TEMProcessingProgramWin.this.getY());
         GroundOrAirDia.setVisible(true);
-        //打开文件
-        fileOpen();
+        //打开文件11
+        if (TEMData.flagGF != -1) {
+            fileOpen();
+        }
     }//GEN-LAST:event_fileOpenButtActionPerformed
 
     public void updateTree() {
@@ -1025,6 +1102,7 @@ public class TEMProcessingProgramWin extends JFrame {
         temData = new TEMData(TEMProcessingProgramWin.this);//初始化读取tem数据类
         temData.openFileButtAction();//打开文件选择对话框 并获得文件 包含清楚文件之前打开的信息
         updateTree();
+        draw();//绘制原始数据
     }
     private void pointsParasButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pointsParasButtonActionPerformed
         // TODO add your handling code here:
@@ -1044,10 +1122,6 @@ public class TEMProcessingProgramWin extends JFrame {
                     paraDialog.chooseTimeWinCheckBox.setEnabled(true);
                     paraDialog.chooseTimeWinCheckBox.setSelected(false);
                 }
-//                else if (TEMSourceData.integrationValue.size() != 0) {
-//                    paraDialog.chooseTimeWinCheckBox.setEnabled(false);
-//                    paraDialog.chooseTimeWinCheckBox.setSelected(false);
-//                }
             }
             paraDialog.pack();
             //设定最后一列为jcheckbox
@@ -1274,31 +1348,59 @@ public class TEMProcessingProgramWin extends JFrame {
         // TODO add your handling code here:
         GPSButtonActionPerformed(evt);
     }//GEN-LAST:event_GPSMenuItemActionPerformed
-
+    public void clearComponents() {
+        yMin = 0;
+        yMax = 0;
+        yMinZ = 0;
+        yMaxZ = 0;
+        xMinZ = 0;
+        xMaxZ = 0;
+        if (TEMChart_Panel != null) {
+            removeChartPanelData(TEMChart_Panel.chartPanel);
+        }
+        if (jPanel1.getComponents().length != 0) {
+            removeChartPanelData(jPanel1);
+        }
+    }
     private void dataVisualTabbedPaneStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_dataVisualTabbedPaneStateChanged
         // TODO add your handling code here:
-        //通道数据
-        if (dataVisualTabbedPane.getSelectedIndex() == 0 && originalDataPanel.getComponents().length != 0) {
-            dataVisualTabbedPane.remove(1);
-            originalDataPanel.removeAll();
-        }
     }//GEN-LAST:event_dataVisualTabbedPaneStateChanged
 
-    public void drawOriginalData() {
+    public void removeChartPanelData(final JPanel jPanel) {
+        if (jPanel.getComponentCount() == 0) {
+            return;
+        }
+        int cc = jPanel.getComponentCount();
+        for (int j = 0; j < cc; j++) {
+            Component c = jPanel.getComponent(j);
+            ChartPanel chartPanel = (ChartPanel) c;
+            JFreeChart chart = chartPanel.getChart();
+            XYPlot plot = chart.getXYPlot();
+            XYSeriesCollection collection = (XYSeriesCollection) plot.getDataset();
+            for (int i = 0; i < collection.getSeriesCount(); i++) {
+                XYSeries series = collection.getSeries(i);
+                series.clear();
+            }
+            collection.removeAllSeries();
+        }
+        jPanel.removeAll();
+    }
+
+    public void drawOriginalData(int interval, int value) {
         //通道数据
         double sampletRate = 0;
         if (TEMSourceData.temData != null) {
             //清除
-            originalDataPanel.removeAll();
-            dataVisualTabbedPane.add(originalScrollPane);
-            dataVisualTabbedPane.add(originalScrollPane);//添加源数据显示
-            dataVisualTabbedPane.setTitleAt(1, "源数据显示");
-            dataVisualTabbedPane.setSelectedIndex(1);
+            removeChartPanelData(jPanel1);
             //赋值
             int counts = TEMSourceData.temData.length;
-            double dividend = 1;
-//            double dividend = Math.pow(2, 23) / 5;
-            for (int i = 0; i < counts; i++) {//文件个数
+            if (interval > TEMSourceData.temData.length) {
+                interval = 1;
+                value = 0;
+                countLabel.setText("显示数：" + countsInterval);
+            }
+            int totalC = value + interval;
+            for (int i = value; i < totalC; i++) {//文件个数
                 if (TEMSourceData.fundfrequency[i] == 4) {
                     sampletRate = 1D / 15000;
                 } else if (TEMSourceData.fundfrequency[i] < 4) {
@@ -1320,78 +1422,40 @@ public class TEMProcessingProgramWin extends JFrame {
                     collection.addSeries(odc.xyseries2);
                     collection.addSeries(odc.xyseries3);
                 }
+                odc.xyseries1.setNotify(false);
+                odc.xyseries2.setNotify(false);
+                odc.xyseries3.setNotify(false);
                 for (int m = 0; m < countsM; m++) {
                     double time = sampletRate * (m + 1) * 1000;
                     if (countsJ == 1) {
-                        odc.xyseries1.add(time, TEMSourceData.temData[i][0][m] / dividend);
-//                        System.out.println(TEMSourceData.temData[i][0][m]+"-----"+TEMSourceData.temData[i][0][m] / dividend);
+                        odc.xyseries1.add(time, TEMSourceData.temData[i][0][m]);
                     } else if (countsJ == 2) {
-                        odc.xyseries1.add(time, TEMSourceData.temData[i][0][m] / dividend);
-                        odc.xyseries2.add(time, TEMSourceData.temData[i][1][m] / dividend);
+                        odc.xyseries1.add(time, TEMSourceData.temData[i][0][m]);
+                        odc.xyseries2.add(time, TEMSourceData.temData[i][1][m]);
                     } else if (countsJ == 3) {
-                        odc.xyseries1.add(time, TEMSourceData.temData[i][0][m] / dividend);
-                        odc.xyseries2.add(time, TEMSourceData.temData[i][1][m] / dividend);
-                        odc.xyseries3.add(time, TEMSourceData.temData[i][2][m] / dividend);
+                        odc.xyseries1.add(time, TEMSourceData.temData[i][0][m]);
+                        odc.xyseries2.add(time, TEMSourceData.temData[i][1][m]);
+                        odc.xyseries3.add(time, TEMSourceData.temData[i][2][m]);
                     }
+                }
+                DefinedChartPanel chartPanel = odc.createDemoPanel(TEMSourceData.filesName[i], "Time(ms)", "Vlotage(mv)", new Dimension(200, 200), collection);
+                jPanel1.add(chartPanel);
+                odc.xyseries1.setNotify(true);
+                odc.xyseries2.setNotify(true);
+                odc.xyseries3.setNotify(true);
+                //初始化x范围
+                if (xMinZ == 0 && xMaxZ == 0) {
+                    JFreeChart jfreechart = chartPanel.getChart();
+                    XYPlot xyplot = (XYPlot) jfreechart.getPlot();
+                    NumberAxis numberaxisX = (NumberAxis) xyplot.getDomainAxis();
+                    xMinZ = numberaxisX.getLowerBound();
+                    xMaxZ = numberaxisX.getUpperBound();
 
                 }
-//                originalDataPanel.add(odc.createDemoPanel());
-                if (i == 0) {
-                    if (countsJ == 1) {
-//                        xMin = odc.xyseries1.getMinX();
-//                        xMax = odc.xyseries1.getMaxX();
-                        yMin = odc.xyseries1.getMinY();
-                        yMax = odc.xyseries1.getMaxY();
-                    } else if (countsJ == 2) {
-//                        xMin = Math.min(odc.xyseries1.getMinX(), odc.xyseries2.getMinX());
-//                        xMax = Math.max(odc.xyseries1.getMaxX(), odc.xyseries2.getMaxX());
-                        yMin = Math.min(odc.xyseries1.getMinY(), odc.xyseries2.getMinY());
-                        yMax = Math.max(odc.xyseries1.getMaxY(), odc.xyseries2.getMaxY());
-                    } else if (countsJ == 3) {
-//                        xMin = Math.min(Math.min(odc.xyseries1.getMinX(), odc.xyseries2.getMinX()), odc.xyseries3.getMinX());
-//                        xMax = Math.max(Math.max(odc.xyseries1.getMaxX(), odc.xyseries2.getMaxX()), odc.xyseries3.getMaxX());
-                        yMin = Math.min(Math.min(odc.xyseries1.getMinY(), odc.xyseries2.getMinY()), odc.xyseries3.getMinY());
-                        yMax = Math.max(Math.max(odc.xyseries1.getMaxY(), odc.xyseries2.getMaxY()), odc.xyseries3.getMaxY());
-                    }
-                } else {
-                    if (countsJ == 1) {
-//                        double xMin = odc.xyseries1.getMinX();
-//                        double xMax = odc.xyseries1.getMaxX();
-                        double yMin = odc.xyseries1.getMinY();
-                        double yMax = odc.xyseries1.getMaxY();
-                        setMaxMin(yMin, yMax);
-                    } else if (countsJ == 2) {
-//                        double xMin = Math.min(odc.xyseries1.getMinX(), odc.xyseries2.getMinX());
-//                        double xMax = Math.max(odc.xyseries1.getMaxX(), odc.xyseries2.getMaxX());
-                        double yMin = Math.min(odc.xyseries1.getMinY(), odc.xyseries2.getMinY());
-                        double yMax = Math.max(odc.xyseries1.getMaxY(), odc.xyseries2.getMaxY());
-                        setMaxMin(yMin, yMax);
-                    } else if (countsJ == 3) {
-//                        double xMin = Math.min(Math.min(odc.xyseries1.getMinX(), odc.xyseries2.getMinX()), odc.xyseries3.getMinX());
-//                        double xMax = Math.max(Math.max(odc.xyseries1.getMaxX(), odc.xyseries2.getMaxX()), odc.xyseries3.getMaxX());
-                        double yMin = Math.min(Math.min(odc.xyseries1.getMinY(), odc.xyseries2.getMinY()), odc.xyseries3.getMinY());
-                        double yMax = Math.max(Math.max(odc.xyseries1.getMaxY(), odc.xyseries2.getMaxY()), odc.xyseries3.getMaxY());
-                        setMaxMin(yMin, yMax);
-                    }
-                }
-                originalDataPanel.add(odc.createDemoPanel(TEMSourceData.filesName[i], "Time(ms)", "Vlotage(mv)", new Dimension(50, 50), collection));
             }
-            setFixedRange(originalDataPanel, yMin, yMax);
-        }
-    }
-
-    public void setMaxMin(double yMin, double yMax) {
-//        if (xMin < this.xMin) {
-//            this.xMin = xMin;
-//        }
-//        if (this.xMax < xMax) {
-//            this.xMax = xMax;
-//        }
-        if (yMin < this.yMin) {
-            this.yMin = yMin;
-        }
-        if (this.yMax < yMax) {
-            this.yMax = yMax;
+            setFixedRange(jPanel1, yMinZ, yMaxZ);
+            setFixedRangeX(jPanel1, xMinZ, xMaxZ);
+            testPanel.updateUI();
         }
     }
 
@@ -1402,6 +1466,16 @@ public class TEMProcessingProgramWin extends JFrame {
             chartPanel.setyMin(min);
             chartPanel.setyMax(max);
             setAxisRange(chartPanel, min, max);
+        }
+    }
+
+    public static void setFixedRangeX(JPanel panel, double min, double max) {
+        Component[] c = panel.getComponents();
+        for (int i = 0; i < c.length; i++) {
+            DefinedChartPanel chartPanel = (DefinedChartPanel) c[i];
+            chartPanel.setxMin(min);
+            chartPanel.setxMax(max);
+            setAxisRangeX(chartPanel, min, max);
         }
     }
 
@@ -1418,10 +1492,32 @@ public class TEMProcessingProgramWin extends JFrame {
             numberaxisX.setUpperBound(zoomY1);
             numberaxisY.setLowerBound(zoomX2);
             numberaxisY.setUpperBound(zoomY2);
-//            setAxisRange(chartPanel, zoomX, zoomY);
         }
     }
 
+    public static void setAxisRangeX(DefinedChartPanel chartPanel, double min, double max) {
+        JFreeChart jfreechart = chartPanel.getChart();
+        XYPlot xyplot = (XYPlot) jfreechart.getPlot();
+        NumberAxis numberaxisX = (NumberAxis) xyplot.getDomainAxis();
+        numberaxisX.setUpperBound(max);
+        if (xyplot.getRangeAxis() instanceof LogarithmicAxis) {
+            numberaxisX.setLowerBound(min - min * .1);
+        } else {
+            numberaxisX.setLowerBound(min);
+        }
+    }
+
+//    public static void setAxisRange(DefinedChartPanel chartPanel, double min, double max) {
+//        JFreeChart jfreechart = chartPanel.getChart();
+//        XYPlot xyplot = (XYPlot) jfreechart.getPlot();
+//        NumberAxis numberaxisY = (NumberAxis) xyplot.getRangeAxis();
+//        numberaxisY.setUpperBound(max);
+//        if (xyplot.getRangeAxis() instanceof LogarithmicAxis) {
+//            numberaxisY.setLowerBound(min - min * .1);
+//        } else {
+//            numberaxisY.setLowerBound(min);
+//        }
+//    }
     public static void setAxisRange(DefinedChartPanel chartPanel, double min, double max) {
         JFreeChart jfreechart = chartPanel.getChart();
         XYPlot xyplot = (XYPlot) jfreechart.getPlot();
@@ -1434,6 +1530,7 @@ public class TEMProcessingProgramWin extends JFrame {
             numberaxisY.setLowerBound(min - interval);
         }
     }
+
     private void originalDataMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_originalDataMenuItemActionPerformed
         // TODO add your handling code here:
         originalDataButtonActionPerformed(evt);
@@ -1441,15 +1538,22 @@ public class TEMProcessingProgramWin extends JFrame {
 
     private void originalDataButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_originalDataButtonActionPerformed
         // TODO add your handling code here:
+        if (jPanel1.getComponentCount() == 0) {
+            draw();
+        }
+        dataVisualTabbedPane.setSelectedIndex(1);
+    }//GEN-LAST:event_originalDataButtonActionPerformed
+    public void draw() {
         //通道数据
         if (pointNode.getChildCount() != 0) {//如果测点节点下的文件数不为零才能弹出 坐标设置窗口
-            drawOriginalData();
+            drawOriginalData(countsInterval, valueNow);
+            updateScrollBar(0, TEMSourceData.temData.length, valueNow);
         } else {
-            JOptionPane.showMessageDialog(this, "无测点数据文件，请先读取文件！");
             return;
         }
-    }//GEN-LAST:event_originalDataButtonActionPerformed
-
+        dataVisualTabbedPane.setSelectedIndex(1);
+        countLabel.setText("显示数：" + countsInterval);
+    }
     private void editMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editMenuItemActionPerformed
         // TODO add your handling code here:
         editButtonActionPerformed(evt);
@@ -1492,6 +1596,61 @@ public class TEMProcessingProgramWin extends JFrame {
         TEMData.flagGF = 1;
         GroundOrAirDia.setVisible(false);
     }//GEN-LAST:event_flyButtonActionPerformed
+    private void testPanelScrollBarAdjustmentValueChanged(java.awt.event.AdjustmentEvent evt) {//GEN-FIRST:event_testPanelScrollBarAdjustmentValueChanged
+        // TODO add your handling code here:
+        valueNow = evt.getValue();
+        drawOriginalData(countsInterval, valueNow);
+    }//GEN-LAST:event_testPanelScrollBarAdjustmentValueChanged
+
+    private void minusButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_minusButtonActionPerformed
+        // TODO add your handling code here:
+        if (TEMSourceData.temData != null) {
+            int total = TEMSourceData.temData.length;
+            if (countsInterval > 1) {
+                countsInterval--;
+                countLabel.setText("显示数：" + countsInterval);
+                updateScrollBar(0, TEMSourceData.temData.length, valueNow);
+                drawOriginalData(countsInterval, valueNow);
+            }
+        }
+    }//GEN-LAST:event_minusButtonActionPerformed
+
+    private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
+        // TODO add your handling code here:
+        if (TEMSourceData.temData != null) {
+            int total = TEMSourceData.temData.length;
+            if (countsInterval < total) {
+                countsInterval++;
+                countLabel.setText("显示数：" + countsInterval);
+                updateScrollBar(0, TEMSourceData.temData.length, valueNow);
+                drawOriginalData(countsInterval, valueNow);
+            }
+        }
+    }//GEN-LAST:event_addButtonActionPerformed
+
+    private void jPanel1MouseWheelMoved(java.awt.event.MouseWheelEvent evt) {//GEN-FIRST:event_jPanel1MouseWheelMoved
+        // TODO add your handling code here:
+        int va = testPanelScrollBar.getValue();
+        if (evt.getWheelRotation() == 1) {
+            testPanelScrollBar.setValue(++va);
+        } else {
+            testPanelScrollBar.setValue(--va);
+        }
+    }//GEN-LAST:event_jPanel1MouseWheelMoved
+
+    private void addButtonMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_addButtonMousePressed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_addButtonMousePressed
+
+    private void addButtonMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_addButtonMouseReleased
+        // TODO add your handling code here:
+    }//GEN-LAST:event_addButtonMouseReleased
+
+    private void updateScrollBar(int min, int max, int value) {
+        testPanelScrollBar.setMinimum(min);
+        testPanelScrollBar.setMaximum(max + testPanelScrollBar.getVisibleAmount() - countsInterval);
+        testPanelScrollBar.setValue(value);
+    }
 
     public void saveFile(TEMUSFFileFilter geopenFileFilter) throws IOException, ClassNotFoundException {
 //        TEMGeoPenFileFilter geopenFileFilter = new TEMGeoPenFileFilter();
@@ -2313,6 +2472,8 @@ public class TEMProcessingProgramWin extends JFrame {
     public javax.swing.JTree SelectedDataTree;
     private javax.swing.JToolBar ToolBar;
     private javax.swing.JMenuItem aboutMenuItem;
+    private javax.swing.JButton addButton;
+    public javax.swing.JLabel countLabel;
     public javax.swing.JTabbedPane dataVisualTabbedPane;
     private javax.swing.JMenuItem deleteNodeMenuItem;
     private javax.swing.JPopupMenu deleteNodePopupMenu;
@@ -2333,14 +2494,14 @@ public class TEMProcessingProgramWin extends JFrame {
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JMenu jMenu2;
+    public static javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JPopupMenu.Separator jSeparator2;
+    private javax.swing.JButton minusButton;
     private javax.swing.JMenuItem openFileMenuItem;
-    private javax.swing.JButton originalDataButton;
+    public javax.swing.JButton originalDataButton;
     private javax.swing.JMenuItem originalDataMenuItem;
-    public static javax.swing.JPanel originalDataPanel;
-    public javax.swing.JScrollPane originalScrollPane;
     private javax.swing.JButton pointsParasButton;
     private javax.swing.JMenuItem pointsParasMenuItem;
     public javax.swing.JPanel pointsPositionPanel;
@@ -2351,6 +2512,8 @@ public class TEMProcessingProgramWin extends JFrame {
     private javax.swing.JMenuItem savePicMenuItem;
     private javax.swing.JMenuItem saveUSFMenuItem;
     public static javax.swing.JPopupMenu setPositionPopUp;
+    private javax.swing.JPanel testPanel;
+    private javax.swing.JScrollBar testPanelScrollBar;
     public javax.swing.JLabel totalFilesLabel;
     private javax.swing.JProgressBar waitingLineProgressBar;
     private javax.swing.JProgressBar waitingProgressBar;
@@ -2450,6 +2613,7 @@ class CheckBoxCellEditor extends AbstractCellEditor implements TableCellEditor {
         } else {
             return null;
         }
+
 //        Component c = table.getDefaultRenderer(String.class).getTableCellRendererComponent(table, value, isSelected, false, row, column);
 //        if (c != null) {
 //            checkBox.setBackground(c.getBackground());

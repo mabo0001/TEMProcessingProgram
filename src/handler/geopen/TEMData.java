@@ -45,7 +45,7 @@ public class TEMData {
     //标记读取的是gptm文件还是tm文件
     public int flagFileType = -1;//0标示tm;1标示gptm;2标示已经积分;-1标示出现错误;3标示为ctm
     public File[] files = null;
-    public static int flagGF = 0;//默认地面数据0
+    public static int flagGF = -1;//默认地面数据0
 
     public TEMData(TEMProcessingProgramWin frame) {
         this.frame = frame;//初始化界面
@@ -74,8 +74,8 @@ public class TEMData {
 
         fileFilter.setMultiSelectionEnabled(true);//设定可以选定多个文件
         if (fileFilter.showOpenDialog(frame) == TEMFileFilter.APPROVE_OPTION) {
-            //初始化
             if (fileFilter.getSuf().equalsIgnoreCase("tm") || fileFilter.getSuf().equalsIgnoreCase("ctm")) {
+                //初始化
                 initalParameters();
                 try {
                     //抽取数据
@@ -144,13 +144,8 @@ public class TEMData {
         TEMSourceData.lineName_XYList.clear();
         TEMSourceData.lineName.clear();
         TEMSourceData.temData = null;
-        //清理数组
         //组件清理
-        frame.pointsPositionPanel.removeAll();
-        if (frame.originalDataPanel.getComponents().length != 0) {
-            frame.originalDataPanel.removeAll();
-            frame.dataVisualTabbedPane.remove(1);
-        }
+        frame.clearComponents();
         //标签清理
         frame.totalFilesLabel.setText("文件总数：");
         frame.fileNameLabel.setText("当前文件名：");
@@ -304,7 +299,6 @@ public class TEMData {
 
         boolean hasGPS = firstJustifiedFileType(this.files);//初始化数组
         boolean error;
-
         if (hasGPS == true) {//老文件
             error = readFiles(this.files, path);//读取文件数据
         } else {//新文件
@@ -844,7 +838,7 @@ public class TEMData {
             }
             //数据提取
             //保存文件
-            DecimalFormat df = new DecimalFormat("0.0");
+            DecimalFormat df = new DecimalFormat("0.0000");
             try {
                 XYSeries[] xyseries = new XYSeries[TEMSourceData.channels[i]];
                 for (int j = 0; j < TEMSourceData.channels[i]; j++) {
@@ -855,10 +849,10 @@ public class TEMData {
                 for (int j = 0; j < length1; j++) {//采样点数
                     for (int m = 0; m < channels; m++) {//通道数
                         //读取数据
+                        double value;
                         try {
                             if (TEMSourceData.fundfrequency[i] >= 5) {//高速采集
-                                double value = 8192 * (raf.readInt() * 1.0 / TEMSourceData.gain[i] / Math.pow(2, 18));//伏特
-//                                System.out.println(value+"******");
+                                value = 8192 * (raf.readInt() * 1.0 / TEMSourceData.gain[i] / Math.pow(2, 18));//伏特
                                 xyseries[m].add((j + 1) * 1000.0 / 500000 - 0.001, value);
                                 if (j >= 0 && j < length1 - 1) {
                                     interplationXYSeries(xyseries[m], 0);
@@ -866,13 +860,28 @@ public class TEMData {
                                     interplationXYSeries(xyseries[m], 1);
                                 }
                             } else {//正常采集
-                                TEMSourceData.temData[i][m][j] = 10000 * (raf.readInt() * 1.0 / TEMSourceData.gain[i] / Math.pow(2, 24));//毫伏
+                                value = 10000 * (raf.readInt() * 1.0 / TEMSourceData.gain[i] / Math.pow(2, 24));
+                                TEMSourceData.temData[i][m][j] = value; //毫伏
                             }
                         } catch (Exception e) {
-                            TEMSourceData.temData[i][m][j] = 0;//null
+                            value = 0;
+                            TEMSourceData.temData[i][m][j] = value;//null
+                        }
+                        if (i == 1 && j == 0 && m == 0) {
+                            frame.yMax = value;
+                            frame.yMin = value;
+                        } else {
+                            if (value > frame.yMax) {
+                                frame.yMax = value;
+                            }
+                            if (value < frame.yMin) {
+                                frame.yMin = value;
+                            }
                         }
                     }
                 }
+                TEMProcessingProgramWin.yMinZ = frame.yMin;
+                TEMProcessingProgramWin.yMaxZ = frame.yMax;
                 //读取电流数据 0.625微妙一个数据点
                 if (TEMSourceData.mode[i].equalsIgnoreCase("CSER_GPS")
                         || TEMSourceData.mode[i].equalsIgnoreCase("SER")
@@ -910,6 +919,7 @@ public class TEMData {
                     double avCurrentS = sumStart / 50;
                     double avCurrentE = sumEnd / 50;
                     TEMSourceData.current[i] = Double.parseDouble(df.format(Math.abs(avCurrentS - avCurrentE)));
+//                    TEMSourceData.current[i] = Math.abs(avCurrentS - avCurrentE);
 //                System.out.println(segments + "电压扇区；" + "avCurrentS=" + avCurrentS + " avCurrentE=" + avCurrentE);
                 }
                 //更改积分时窗范围
@@ -1265,23 +1275,35 @@ public class TEMData {
                     for (int m = 0; m < TEMSourceData.temData[i].length; m++) {
                         //先读取前两个数据 不要
                         //读取数据
+                        double value = 10000.0 * (raf.readInt() * 1.0 / TEMSourceData.gain[i] / Math.pow(2, 24));//伏特
                         try {
-//                            TEMSourceData.temData[i][m][j] = raf.readInt() * 1.0 / TEMSourceData.gain[i];
-                            TEMSourceData.temData[i][m][j] = 10000.0 * (raf.readInt() * 1.0 / TEMSourceData.gain[i] / Math.pow(2, 24));//伏特
-//                            System.out.println(TEMSourceData.temData[i][m][j]);
+                            TEMSourceData.temData[i][m][j] = value;
                         } catch (Exception e) {
+                            value = 0;
                             TEMSourceData.temData[i][m][j] = 0;
-//                            break;
+                        }
+                        if (i == 1 && j == 0 && m == 0) {
+                            frame.yMax = value;
+                            frame.yMin = value;
+                        } else {
+                            if (value > frame.yMax) {
+                                frame.yMax = value;
+                            }
+                            if (value < frame.yMin) {
+                                frame.yMin = value;
+                            }
                         }
                     }
                 }
+                TEMProcessingProgramWin.yMinZ = frame.yMin;
+                TEMProcessingProgramWin.yMaxZ = frame.yMax;
             } catch (Exception e) {
                 e.printStackTrace();
                 JOptionPane.showMessageDialog(null, "源文件数据量不够！显示存在问题，请检查源数据！");
                 return false;
             }
             //读取电流数据 0.625微妙一个数据点
-            DecimalFormat df = new DecimalFormat("0.0");
+            DecimalFormat df = new DecimalFormat("0.0000");
             if (TEMSourceData.mode[i].equalsIgnoreCase("CSER_GPS")
                     || TEMSourceData.mode[i].equalsIgnoreCase("SER")
                     || TEMSourceData.mode[i].equalsIgnoreCase("CSR_GPS")
@@ -1313,6 +1335,7 @@ public class TEMData {
                 }
                 double avCurrentS = sumStart / 50;
                 double avCurrentE = sumEnd / 50;
+//                TEMSourceData.current[i] = Math.abs(avCurrentS - avCurrentE);
                 TEMSourceData.current[i] = Double.parseDouble(df.format(Math.abs(avCurrentS - avCurrentE)));
 //                System.out.println(segments + "电压扇区；" + "avCurrentS=" + avCurrentS + " avCurrentE=" + avCurrentE);
             }

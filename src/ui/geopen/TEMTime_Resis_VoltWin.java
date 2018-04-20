@@ -29,9 +29,6 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import positionChart.geopen.DefinedChartPanel;
 import positionChart.geopen.Resis_Volt_TimeChart;
-import static ui.geopen.TEMProcessingProgramWin.yMax;
-import static ui.geopen.TEMProcessingProgramWin.yMin;
-
 /**
  *
  * @author Administrator

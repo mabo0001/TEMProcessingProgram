@@ -38,6 +38,7 @@ import org.jfree.chart.title.TextTitle;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
+import org.jfree.ui.HorizontalAlignment;
 import org.jfree.ui.RectangleEdge;
 import org.jfree.ui.RectangleInsets;
 import org.jfree.ui.VerticalAlignment;
@@ -80,8 +81,8 @@ public class OriginalDataChart implements ChartMouseListener, MouseListener, Mou
         chartPanel.setMaximumDrawWidth(10000);
         chartPanel.setMinimumDrawWidth(100);
         chartPanel.setMaximumDrawHeight(10000);
-        chartPanel.setMinimumDrawHeight(100);
-        chartPanel.setPreferredSize(new Dimension(100, 200));
+        chartPanel.setMinimumDrawHeight(50);
+        chartPanel.setPreferredSize(deDimension);
         chartPanel.setMouseWheelEnabled(false);
         //
         chartPanel.getPopupMenu().removeAll();
@@ -100,21 +101,15 @@ public class OriginalDataChart implements ChartMouseListener, MouseListener, Mou
                 true,
                 false);
         XYPlot xyplot = (XYPlot) chart.getPlot();
-
         //设定标题
         TextTitle title = chart.getTitle();
-        title.setFont(new Font("", Font.BOLD, 14));
+        title.setHorizontalAlignment(HorizontalAlignment.LEFT);
+        title.setFont(new Font("SansSerif", Font.BOLD, 10));
         title.setPaint(Color.BLUE);
-        chart.removeLegend();
         //设定背景
         chart.setBackgroundPaint(Color.WHITE);
-//        TextTitle title = chart.getTitle();
-//        title.setHorizontalAlignment(HorizontalAlignment.CENTER);
-//        title.setFont(new Font("楷体_GB2312", Font.BOLD, 12));
-//        title.setPaint(Color.BLUE);
-//        LegendTitle legendTitle = chart.getLegend();
         LegendTitle legendTitle = new LegendTitle(xyplot);
-        legendTitle.setItemFont(new Font("楷体_GB2312", Font.PLAIN, 9));
+        legendTitle.setItemFont(new Font("楷体", Font.PLAIN, 10));
         BlockContainer blockcontainer = new BlockContainer(new BorderArrangement());
         blockcontainer.setFrame(new BlockBorder(1.0D, 1.0D, 1.0D, 1.0D));
         blockcontainer.setMargin(0, 0, 30, 0);
@@ -198,12 +193,12 @@ public class OriginalDataChart implements ChartMouseListener, MouseListener, Mou
         numberaxisX.setAxisLineVisible(true);
         numberaxisX.setTickMarksVisible(true);
         numberaxisX.setLabelPaint(Color.BLUE);
-        numberaxisX.setTickLabelFont(new Font("", Font.PLAIN, 10));
-        numberaxisX.setLabelFont(new Font("SansSerif", Font.PLAIN, 12));
+        numberaxisX.setTickLabelFont(new Font("", Font.PLAIN, 9));
+        numberaxisX.setLabelFont(new Font("SansSerif", Font.PLAIN, 9));
 
 //        numberaxisX.setInverted(true);//反向
-        numberaxisY.setTickLabelFont(new Font("", Font.PLAIN, 10));
-        numberaxisY.setLabelFont(new Font("SansSerif", Font.PLAIN, 12));
+        numberaxisY.setTickLabelFont(new Font("", Font.PLAIN, 9));
+        numberaxisY.setLabelFont(new Font("SansSerif", Font.PLAIN, 9));
         numberaxisY.setAxisLineVisible(false);
         numberaxisY.setTickMarksVisible(true);
         numberaxisY.setLabelPaint(Color.RED);

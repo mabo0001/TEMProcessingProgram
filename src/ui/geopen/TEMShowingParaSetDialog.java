@@ -73,7 +73,7 @@ public class TEMShowingParaSetDialog extends javax.swing.JDialog implements Prop
     /**
      * Creates new form TEMShowingParaSetDialog
      */
-    public TEMShowingParaSetDialog(TEMProcessingProgramWin frame, boolean modal) {
+public TEMShowingParaSetDialog(TEMProcessingProgramWin frame, boolean modal) {
         super(frame, modal);
         this.frame = frame;
         initComponents();
